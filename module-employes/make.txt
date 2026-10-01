@@ -1,0 +1,36 @@
+==============================================================
+  GestionEmployes - Commandes de compilation (Qt 6.7.3)
+==============================================================
+
+PREREQUIS
+  - Qt 6.7.3 installe avec MinGW
+  - Le dossier de Qt doit etre dans le PATH (ouvrir le raccourci
+    "Qt 6.7.3 (MinGW 64-bit)" du menu Demarrer, il configure tout)
+
+--------------------------------------------------------------
+ COMPILATION EN LIGNE DE COMMANDE
+--------------------------------------------------------------
+  cd C:\Users\dhaou\Downloads\2A23\projet C++\test
+
+  qmake GestionEmployes.pro
+  mingw32-make
+  .\release\GestionEmployes.exe
+
+  -- nettoyage --
+  mingw32-make clean
+  mingw32-make distclean
+
+--------------------------------------------------------------
+ RECOMMANDE : QT CREATOR
+--------------------------------------------------------------
+  Fichier > Ouvrir un fichier ou un projet > GestionEmployes.pro
+  Choisir le kit Desktop Qt 6.7.3
+  Ctrl+R
+
+--------------------------------------------------------------
+ ETAT ACTUEL
+   - Navigation (barre laterale) : FONCTIONNELLE
+   - Boutons d'action : visuels uniquement (aucun connect)
+   - Recherche / filtres : desactives
+   - Statistiques : non calculees
+==============================================================
