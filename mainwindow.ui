@@ -1,0 +1,441 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect><x>0</x><y>0</y><width>1536</width><height>1024</height></rect>
+  </property>
+  <property name="minimumSize"><size><width>1280</width><height>800</height></size></property>
+  <property name="windowTitle"><string>Gestion des Participants</string></property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QHBoxLayout" name="rootLayout">
+    <property name="spacing"><number>0</number></property>
+    <property name="leftMargin"><number>0</number></property>
+    <property name="topMargin"><number>0</number></property>
+    <property name="rightMargin"><number>0</number></property>
+    <property name="bottomMargin"><number>0</number></property>
+
+    <!-- ===================== SIDEBAR ===================== -->
+    <item>
+     <widget class="QFrame" name="sidebar">
+      <property name="minimumSize"><size><width>300</width><height>0</height></size></property>
+      <property name="maximumSize"><size><width>300</width><height>16777215</height></size></property>
+      <layout class="QVBoxLayout" name="sidebarLayout">
+       <property name="spacing"><number>6</number></property>
+       <property name="leftMargin"><number>12</number></property>
+       <property name="topMargin"><number>12</number></property>
+       <property name="rightMargin"><number>12</number></property>
+       <property name="bottomMargin"><number>16</number></property>
+       <item>
+        <widget class="QWidget" name="logoBox">
+         <layout class="QHBoxLayout" name="logoLayout">
+          <property name="spacing"><number>10</number></property>
+          <property name="leftMargin"><number>0</number></property>
+          <property name="topMargin"><number>0</number></property>
+          <property name="rightMargin"><number>0</number></property>
+          <property name="bottomMargin"><number>0</number></property>
+          <item>
+           <widget class="QLabel" name="logoIcon">
+            <property name="minimumSize"><size><width>72</width><height>72</height></size></property>
+            <property name="maximumSize"><size><width>72</width><height>72</height></size></property>
+           </widget>
+          </item>
+          <item>
+           <layout class="QVBoxLayout" name="logoTextLayout">
+            <property name="spacing"><number>0</number></property>
+            <item>
+             <widget class="QLabel" name="logoTitle">
+              <property name="text"><string>HackFlow</string></property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="logoTagline">
+              <property name="text"><string>ORGANISEZ · COLLABOREZ · INNOVEZ</string></property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <spacer name="spacerLogo">
+         <property name="orientation"><enum>Qt::Vertical</enum></property>
+         <property name="sizeHint" stdset="0"><size><width>20</width><height>20</height></size></property>
+        </spacer>
+       </item>
+       <item>
+        <widget class="QPushButton" name="btnAccueil">
+         <property name="text"><string>  Accueil</string></property>
+         <property name="checkable"><bool>true</bool></property>
+         <property name="autoExclusive"><bool>true</bool></property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="btnParticipants">
+         <property name="text"><string>  Participants</string></property>
+         <property name="checkable"><bool>true</bool></property>
+         <property name="checked"><bool>true</bool></property>
+         <property name="autoExclusive"><bool>true</bool></property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="btnEquipes">
+         <property name="text"><string>  Équipes</string></property>
+         <property name="checkable"><bool>true</bool></property>
+         <property name="autoExclusive"><bool>true</bool></property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="btnProjets">
+         <property name="text"><string>  Projets</string></property>
+         <property name="checkable"><bool>true</bool></property>
+         <property name="autoExclusive"><bool>true</bool></property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="btnEmployes">
+         <property name="text"><string>  Employés</string></property>
+         <property name="checkable"><bool>true</bool></property>
+         <property name="autoExclusive"><bool>true</bool></property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="btnJury">
+         <property name="text"><string>  Jury</string></property>
+         <property name="checkable"><bool>true</bool></property>
+         <property name="autoExclusive"><bool>true</bool></property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="btnParametres">
+         <property name="text"><string>  Paramètres</string></property>
+         <property name="checkable"><bool>true</bool></property>
+         <property name="autoExclusive"><bool>true</bool></property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="spacerSidebar">
+         <property name="orientation"><enum>Qt::Vertical</enum></property>
+         <property name="sizeHint" stdset="0"><size><width>20</width><height>40</height></size></property>
+        </spacer>
+       </item>
+       <item>
+        <widget class="QFrame" name="userCard">
+         <property name="minimumSize"><size><width>0</width><height>72</height></size></property>
+         <layout class="QHBoxLayout" name="userCardLayout">
+          <item>
+           <widget class="QLabel" name="userAvatar">
+            <property name="minimumSize"><size><width>48</width><height>48</height></size></property>
+            <property name="maximumSize"><size><width>48</width><height>48</height></size></property>
+            <property name="alignment"><set>Qt::AlignCenter</set></property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="userCardLabel">
+            <property name="text"><string>Admin&lt;br/&gt;&lt;span style=&quot;color:#8fa3d6;font-size:11px&quot;&gt;admin@example.com&lt;/span&gt;</string></property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </item>
+
+    <!-- ===================== MAIN AREA ===================== -->
+    <item>
+     <widget class="QWidget" name="mainArea">
+      <layout class="QVBoxLayout" name="mainLayout">
+       <property name="spacing"><number>0</number></property>
+       <property name="leftMargin"><number>0</number></property>
+       <property name="topMargin"><number>0</number></property>
+       <property name="rightMargin"><number>0</number></property>
+       <property name="bottomMargin"><number>0</number></property>
+
+       <!-- Top bar -->
+       <item>
+        <widget class="QFrame" name="topBar">
+         <property name="minimumSize"><size><width>0</width><height>66</height></size></property>
+         <property name="maximumSize"><size><width>16777215</width><height>66</height></size></property>
+         <layout class="QHBoxLayout" name="topBarLayout">
+          <property name="leftMargin"><number>24</number></property>
+          <property name="rightMargin"><number>24</number></property>
+          <item>
+           <widget class="QLineEdit" name="globalSearch">
+            <property name="minimumSize"><size><width>430</width><height>38</height></size></property>
+            <property name="maximumSize"><size><width>430</width><height>38</height></size></property>
+            <property name="placeholderText"><string>Rechercher un participant...</string></property>
+           </widget>
+          </item>
+          <item>
+           <spacer name="spacerTop">
+            <property name="orientation"><enum>Qt::Horizontal</enum></property>
+            <property name="sizeHint" stdset="0"><size><width>40</width><height>20</height></size></property>
+           </spacer>
+          </item>
+          <item>
+           <widget class="QToolButton" name="btnNotif">
+            <property name="minimumSize"><size><width>40</width><height>40</height></size></property>
+            <property name="maximumSize"><size><width>40</width><height>40</height></size></property>
+            <property name="toolTip"><string>Notifications</string></property>
+            <property name="text"><string></string></property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="adminAvatar">
+            <property name="minimumSize"><size><width>44</width><height>44</height></size></property>
+            <property name="maximumSize"><size><width>44</width><height>44</height></size></property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="adminLabel">
+            <property name="text"><string>Admin&lt;br/&gt;&lt;span style=&quot;color:#8fa3d6;font-size:11px&quot;&gt;Administrateur&lt;/span&gt;</string></property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </item>
+
+       <!-- Page content -->
+       <item>
+        <widget class="QWidget" name="pageContent">
+         <layout class="QVBoxLayout" name="pageLayout">
+          <property name="spacing"><number>14</number></property>
+          <property name="leftMargin"><number>24</number></property>
+          <property name="topMargin"><number>18</number></property>
+          <property name="rightMargin"><number>18</number></property>
+          <property name="bottomMargin"><number>18</number></property>
+
+          <item>
+           <layout class="QHBoxLayout" name="titleRow">
+            <item>
+             <widget class="QLabel" name="titleIcon">
+              <property name="text"><string></string></property>
+              <property name="alignment"><set>Qt::AlignTop</set></property>
+             </widget>
+            </item>
+            <item>
+             <layout class="QVBoxLayout" name="titleCol">
+              <property name="spacing"><number>0</number></property>
+              <item>
+               <widget class="QLabel" name="titleLabel">
+                <property name="text"><string>Gestion des &lt;span style=&quot;color:#6ea8ff&quot;&gt;Participants&lt;/span&gt;</string></property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QLabel" name="subtitleLabel">
+                <property name="text"><string>Consultez et gérez tous les participants inscrits à l'événement.</string></property>
+               </widget>
+              </item>
+             </layout>
+            </item>
+            <item>
+             <spacer name="spacerTitle">
+              <property name="orientation"><enum>Qt::Horizontal</enum></property>
+              <property name="sizeHint" stdset="0"><size><width>40</width><height>20</height></size></property>
+             </spacer>
+            </item>
+            <item>
+             <widget class="QLabel" name="breadcrumb">
+              <property name="text"><string>Participants</string></property>
+              <property name="alignment"><set>Qt::AlignTop|Qt::AlignRight</set></property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+
+          <item>
+           <layout class="QHBoxLayout" name="contentRow">
+            <property name="spacing"><number>14</number></property>
+
+            <!-- ============ FORM PANEL ============ -->
+            <item>
+             <widget class="QFrame" name="formPanel">
+              <property name="minimumSize"><size><width>382</width><height>0</height></size></property>
+              <property name="maximumSize"><size><width>382</width><height>16777215</height></size></property>
+              <layout class="QVBoxLayout" name="formLayout">
+               <property name="spacing"><number>3</number></property>
+               <property name="leftMargin"><number>14</number></property>
+               <property name="topMargin"><number>14</number></property>
+               <property name="rightMargin"><number>14</number></property>
+               <property name="bottomMargin"><number>14</number></property>
+               <item>
+                <widget class="QLabel" name="formTitle">
+                 <property name="text"><string>Ajouter un participant</string></property>
+                </widget>
+               </item>
+               <item><widget class="QLabel" name="lblId"><property name="text"><string>ID *</string></property></widget></item>
+               <item>
+                <widget class="QLineEdit" name="editId">
+                 <property name="readOnly"><bool>true</bool></property>
+                 <property name="placeholderText"><string>Généré automatiquement</string></property>
+                </widget>
+               </item>
+               <item><widget class="QLabel" name="lblNom"><property name="text"><string>Nom *</string></property></widget></item>
+               <item>
+                <widget class="QLineEdit" name="editNom">
+                 <property name="placeholderText"><string>Nom du participant</string></property>
+                </widget>
+               </item>
+               <item><widget class="QLabel" name="lblPrenom"><property name="text"><string>Prénom *</string></property></widget></item>
+               <item>
+                <widget class="QLineEdit" name="editPrenom">
+                 <property name="placeholderText"><string>Prénom du participant</string></property>
+                </widget>
+               </item>
+               <item><widget class="QLabel" name="lblEmail"><property name="text"><string>Email *</string></property></widget></item>
+               <item>
+                <widget class="QLineEdit" name="editEmail">
+                 <property name="placeholderText"><string>exemple@email.com</string></property>
+                </widget>
+               </item>
+               <item><widget class="QLabel" name="lblTel"><property name="text"><string>Téléphone *</string></property></widget></item>
+               <item>
+                <widget class="QLineEdit" name="editTel">
+                 <property name="placeholderText"><string>+216 XX XXX XXX</string></property>
+                </widget>
+               </item>
+               <item><widget class="QLabel" name="lblRole"><property name="text"><string>Rôle *</string></property></widget></item>
+               <item><widget class="QComboBox" name="comboRole"/></item>
+               <item><widget class="QLabel" name="lblEquipe"><property name="text"><string>Équipe(s) *</string></property></widget></item>
+               <item><widget class="QComboBox" name="comboEquipe"/></item>
+               <item><widget class="QLabel" name="lblDispo"><property name="text"><string>Disponibilité *</string></property></widget></item>
+               <item><widget class="QComboBox" name="comboDispo"/></item>
+               <item><widget class="QLabel" name="lblPieceJointe"><property name="text"><string>Pièce jointe (PDF)</string></property></widget></item>
+               <item>
+                <widget class="QFrame" name="pdfDropZone">
+                 <property name="minimumSize"><size><width>0</width><height>76</height></size></property>
+                 <property name="maximumSize"><size><width>16777215</width><height>76</height></size></property>
+                 <property name="frameShape"><enum>QFrame::StyledPanel</enum></property>
+                 <layout class="QVBoxLayout" name="pdfDropLayout">
+                  <property name="spacing"><number>1</number></property>
+                  <item><widget class="QLabel" name="pdfIcon"><property name="text"><string>⇧</string></property><property name="alignment"><set>Qt::AlignCenter</set></property></widget></item>
+                  <item><widget class="QLabel" name="pdfPrompt"><property name="text"><string>Déposez votre fichier PDF ici</string></property><property name="alignment"><set>Qt::AlignCenter</set></property></widget></item>
+                  <item><widget class="QLabel" name="pdfHint"><property name="text"><string>ou cliquez pour parcourir · PDF uniquement · Taille max. 10 Mo</string></property><property name="alignment"><set>Qt::AlignCenter</set></property></widget></item>
+                 </layout>
+                </widget>
+               </item>
+               <item>
+                <spacer name="spacerForm1">
+                 <property name="orientation"><enum>Qt::Vertical</enum></property>
+                 <property name="sizeHint" stdset="0"><size><width>20</width><height>10</height></size></property>
+                </spacer>
+               </item>
+               <item>
+                <layout class="QHBoxLayout" name="formButtons">
+                 <item>
+                  <widget class="QPushButton" name="btnAjouter">
+                   <property name="minimumSize"><size><width>0</width><height>34</height></size></property>
+                   <property name="text"><string>  Ajouter</string></property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="btnVider">
+                   <property name="minimumSize"><size><width>0</width><height>34</height></size></property>
+                   <property name="text"><string>  Vider</string></property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+
+               <item>
+                <spacer name="spacerForm2">
+                 <property name="orientation"><enum>Qt::Vertical</enum></property>
+                 <property name="sizeHint" stdset="0"><size><width>20</width><height>40</height></size></property>
+                </spacer>
+               </item>
+              </layout>
+             </widget>
+            </item>
+
+            <!-- ============ TABLE PANEL ============ -->
+            <item>
+             <widget class="QFrame" name="tablePanel">
+              <layout class="QVBoxLayout" name="tableLayout">
+               <property name="spacing"><number>10</number></property>
+               <item>
+                <layout class="QHBoxLayout" name="filterRow">
+                 <item><widget class="QComboBox" name="comboFiltreRole"><property name="minimumSize"><size><width>134</width><height>38</height></size></property></widget></item>
+                 <item><widget class="QComboBox" name="comboFiltreEquipe"><property name="minimumSize"><size><width>164</width><height>38</height></size></property></widget></item>
+                 <item><widget class="QComboBox" name="comboFiltreDispo"><property name="minimumSize"><size><width>134</width><height>38</height></size></property></widget></item>
+                 <item>
+                  <widget class="QPushButton" name="btnTrier">
+                   <property name="minimumSize"><size><width>100</width><height>38</height></size></property>
+                   <property name="text"><string>  Trier</string></property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item>
+                <layout class="QHBoxLayout" name="actionRow">
+                 <item>
+                  <spacer name="spacerActions">
+                   <property name="orientation"><enum>Qt::Horizontal</enum></property>
+                   <property name="sizeHint" stdset="0"><size><width>40</width><height>20</height></size></property>
+                  </spacer>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="btnExporter">
+                   <property name="minimumSize"><size><width>100</width><height>34</height></size></property>
+                   <property name="text"><string>  Exporter</string></property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+               <item>
+                <widget class="QTableWidget" name="participantsTable"/>
+               </item>
+               <item>
+                <layout class="QHBoxLayout" name="footerRow">
+                 <item>
+                  <widget class="QLabel" name="countLabel">
+                   <property name="text"><string>Affichage de 0 sur 0 participants</string></property>
+                  </widget>
+                 </item>
+                 <item>
+                  <spacer name="spacerFooter">
+                   <property name="orientation"><enum>Qt::Horizontal</enum></property>
+                   <property name="sizeHint" stdset="0"><size><width>40</width><height>20</height></size></property>
+                  </spacer>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="btnPrev">
+                   <property name="minimumSize"><size><width>34</width><height>34</height></size></property>
+                   <property name="maximumSize"><size><width>34</width><height>34</height></size></property>
+                   <property name="text"><string></string></property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="btnPage">
+                   <property name="minimumSize"><size><width>34</width><height>34</height></size></property>
+                   <property name="maximumSize"><size><width>34</width><height>34</height></size></property>
+                   <property name="text"><string>1</string></property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="btnNext">
+                   <property name="minimumSize"><size><width>34</width><height>34</height></size></property>
+                   <property name="maximumSize"><size><width>34</width><height>34</height></size></property>
+                   <property name="text"><string></string></property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+              </layout>
+             </widget>
+            </item>
+           </layout>
+          </item>
+         </layout>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
