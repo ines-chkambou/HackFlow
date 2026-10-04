@@ -1,0 +1,34 @@
+<RCC>
+    <qresource prefix="/">
+        <file>icons/arrow-up-down.png</file>
+        <file>icons/bell.png</file>
+        <file>icons/calendar-days.png</file>
+        <file>icons/chevron-down-small.png</file>
+        <file>icons/chevron-down.png</file>
+        <file>icons/chevron-left.png</file>
+        <file>icons/chevron-right.png</file>
+        <file>icons/circle-plus.png</file>
+        <file>icons/clipboard-list.png</file>
+        <file>icons/download.png</file>
+        <file>icons/eye.png</file>
+        <file>icons/house.png</file>
+        <file>icons/info.png</file>
+        <file>icons/layers.png</file>
+        <file>icons/lightbulb.png</file>
+        <file>icons/mail.png</file>
+        <file>icons/minus.png</file>
+        <file>icons/network.png</file>
+        <file>icons/pencil.png</file>
+        <file>icons/plus.png</file>
+        <file>icons/rotate-cw.png</file>
+        <file>icons/search.png</file>
+        <file>icons/settings.png</file>
+        <file>icons/shield-check.png</file>
+        <file>icons/square.png</file>
+        <file>icons/trash-2.png</file>
+        <file>icons/user.png</file>
+        <file>icons/users-round.png</file>
+        <file>icons/users.png</file>
+        <file>icons/x.png</file>
+    </qresource>
+</RCC>
