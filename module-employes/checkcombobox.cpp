@@ -10,7 +10,7 @@ CheckComboBox::CheckComboBox(QWidget *parent) : QComboBox(parent)
     setModel(m_model);
     setEditable(true);
     lineEdit()->setReadOnly(true);
-    lineEdit()->setPlaceholderText("Selectionner une ou plusieurs equipes");
+    lineEdit()->setPlaceholderText("Sélectionner une ou plusieurs équipes");
     view()->viewport()->installEventFilter(this);
     lineEdit()->installEventFilter(this);
     connect(m_model, &QStandardItemModel::itemChanged, this, [this]() { updateText(); });
@@ -69,7 +69,7 @@ bool CheckComboBox::eventFilter(QObject *obj, QEvent *ev)
         if (idx.isValid()) {
             auto *it = m_model->itemFromIndex(idx);
             it->setCheckState(it->checkState() == Qt::Checked ? Qt::Unchecked : Qt::Checked);
-            return true;
+            return true;     // garde la liste ouverte
         }
     }
     if (obj == lineEdit() && ev->type() == QEvent::MouseButtonRelease) {

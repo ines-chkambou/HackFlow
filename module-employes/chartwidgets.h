@@ -24,6 +24,7 @@ protected:
     ChartData m_data;
 };
 
+// Donut avec total au centre + legende (nom, effectif, pourcentage)
 class PieChartWidget : public ChartBase
 {
     Q_OBJECT
@@ -33,9 +34,10 @@ public:
 protected:
     void paintEvent(QPaintEvent *) override;
 private:
-    QString m_caption = "Employes";
+    QString m_caption = "Employés";
 };
 
+// Histogramme
 class BarChartWidget : public ChartBase
 {
     Q_OBJECT

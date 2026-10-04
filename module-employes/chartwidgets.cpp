@@ -27,7 +27,7 @@ void PieChartWidget::paintEvent(QPaintEvent *)
     for (const auto &d : m_data) total += d.value;
     if (total <= 0) {
         p.setPen(kText);
-        p.drawText(rect(), Qt::AlignCenter, tr("Aucune donnee"));
+        p.drawText(rect(), Qt::AlignCenter, tr("Aucune donnée"));
         return;
     }
     const int side = qMin(height() - 8, int(width() * 0.42));
@@ -42,11 +42,13 @@ void PieChartWidget::paintEvent(QPaintEvent *)
         mids << (start + span / 2) / 16.0;
         start += span;
     }
+    // trou du donut
     const double hole = side * 0.56;
     QRectF inner(pie.center().x() - hole / 2, pie.center().y() - hole / 2, hole, hole);
     p.setPen(Qt::NoPen);
     p.setBrush(kCard);
     p.drawEllipse(inner);
+    // pourcentages sur les parts
     QFont f = font(); f.setBold(true); f.setPointSizeF(f.pointSizeF() - 1); p.setFont(f);
     p.setPen(QColor("#101B31"));
     for (int i = 0; i < m_data.size(); ++i) {
@@ -56,6 +58,7 @@ void PieChartWidget::paintEvent(QPaintEvent *)
         p.drawText(QRectF(c.x() - 24, c.y() - 9, 48, 18), Qt::AlignCenter,
                    QString("%1%").arg(qRound(100.0 * m_data[i].value / total)));
     }
+    // total au centre
     p.setPen(kText);
     QFont big = font(); big.setPointSize(20); big.setBold(true); p.setFont(big);
     p.drawText(QRectF(inner.left(), inner.center().y() - 26, inner.width(), 30), Qt::AlignCenter, QString::number(int(total)));
@@ -63,6 +66,7 @@ void PieChartWidget::paintEvent(QPaintEvent *)
     p.setPen(kMuted);
     p.drawText(QRectF(inner.left(), inner.center().y() + 4, inner.width(), 16), Qt::AlignCenter, m_caption);
 
+    // legende
     QFont lf = font(); lf.setBold(false); p.setFont(lf);
     const int x = int(pie.right()) + 26;
     const int rowH = 28;
@@ -85,7 +89,7 @@ void BarChartWidget::paintEvent(QPaintEvent *)
     p.setRenderHint(QPainter::Antialiasing);
     if (m_data.isEmpty()) {
         p.setPen(kText);
-        p.drawText(rect(), Qt::AlignCenter, tr("Aucune donnee"));
+        p.drawText(rect(), Qt::AlignCenter, tr("Aucune donnée"));
         return;
     }
     double maxV = 1;

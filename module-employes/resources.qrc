@@ -28,6 +28,17 @@
         <file>icons/f_users@2x.png</file>
         <file>icons/home_c.png</file>
         <file>icons/info_c.png</file>
+        <file>icons/kpi_folder.png</file>
+        <file>icons/kpi_grid.png</file>
+        <file>icons/kpi_shield.png</file>
+        <file>icons/kpi_users.png</file>
+        <file>icons/login_check.png</file>
+        <file>icons/login_eye.png</file>
+        <file>icons/login_eye_off.png</file>
+        <file>icons/login_f_lock.png</file>
+        <file>icons/login_f_lock@2x.png</file>
+        <file>icons/login_f_user.png</file>
+        <file>icons/login_f_user@2x.png</file>
         <file>icons/nav_award_a.png</file>
         <file>icons/nav_award_n.png</file>
         <file>icons/nav_cpu_a.png</file>
@@ -40,6 +51,7 @@
         <file>icons/nav_grid_n.png</file>
         <file>icons/nav_home_a.png</file>
         <file>icons/nav_home_n.png</file>
+        <file>icons/nav_logout_n.png</file>
         <file>icons/nav_shield_a.png</file>
         <file>icons/nav_shield_n.png</file>
         <file>icons/nav_user_a.png</file>
@@ -51,11 +63,22 @@
         <file>icons/refresh_w.png</file>
         <file>icons/search_g.png</file>
         <file>icons/sort_w.png</file>
+        <file>icons/ti_award.png</file>
+        <file>icons/ti_cpu.png</file>
+        <file>icons/ti_folder.png</file>
+        <file>icons/ti_gear.png</file>
+        <file>icons/ti_grid.png</file>
+        <file>icons/ti_home.png</file>
+        <file>icons/ti_shield.png</file>
+        <file>icons/ti_user.png</file>
+        <file>icons/ti_users.png</file>
         <file>icons/title_users.png</file>
         <file>icons/trash_r.png</file>
         <file>icons/user_w.png</file>
         <file>icons/userplus_w.png</file>
         <file>icons/users_c.png</file>
+        <file>img/login_illustration.png</file>
+        <file>img/login_logo.png</file>
         <file>img/logo_full.png</file>
         <file>img/logo_icon.png</file>
     </qresource>

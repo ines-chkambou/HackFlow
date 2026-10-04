@@ -5,6 +5,7 @@
 #include <QStringList>
 class QStandardItemModel;
 
+// Liste deroulante a choix multiples (cases a cocher) - utilisee pour "Equipe(s)"
 class CheckComboBox : public QComboBox
 {
     Q_OBJECT
@@ -12,7 +13,7 @@ public:
     explicit CheckComboBox(QWidget *parent = nullptr);
     void        setItems(const QStringList &items);
     QStringList checkedItems() const;
-    void        setCheckedItems(const QStringList &items);
+    void        setCheckedItems(const QStringList &items);   // ajoute les valeurs inconnues
     void        clearChecked();
 protected:
     bool eventFilter(QObject *obj, QEvent *ev) override;

@@ -1,22 +1,22 @@
 QT       += core gui widgets
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 CONFIG   += c++17
-TARGET    = GestionEmployes
+TARGET    = SmartHackathon
 TEMPLATE  = app
 
 SOURCES += \
     main.cpp \
-    mainwindow.cpp \
+    gsmarthackathon.cpp \
     chartwidgets.cpp \
     checkcombobox.cpp
 
 HEADERS += \
-    mainwindow.h \
+    gsmarthackathon.h \
     chartwidgets.h \
     checkcombobox.h
 
 FORMS += \
-    mainwindow.ui
+    gsmarthackathon.ui
 
 RESOURCES += \
     resources.qrc
