@@ -1,34 +1,117 @@
 <RCC>
     <qresource prefix="/">
-        <file>icons/arrow-up-down.png</file>
+        <file>icons/avatar.png</file>
+        <file>icons/avatar_s.png</file>
+        <file>icons/bars_c.png</file>
         <file>icons/bell.png</file>
-        <file>icons/calendar-days.png</file>
-        <file>icons/chevron-down-small.png</file>
-        <file>icons/chevron-down.png</file>
-        <file>icons/chevron-left.png</file>
-        <file>icons/chevron-right.png</file>
-        <file>icons/circle-plus.png</file>
-        <file>icons/clipboard-list.png</file>
-        <file>icons/download.png</file>
-        <file>icons/eye.png</file>
-        <file>icons/house.png</file>
-        <file>icons/info.png</file>
-        <file>icons/layers.png</file>
-        <file>icons/lightbulb.png</file>
-        <file>icons/mail.png</file>
-        <file>icons/minus.png</file>
-        <file>icons/network.png</file>
-        <file>icons/pencil.png</file>
-        <file>icons/plus.png</file>
-        <file>icons/rotate-cw.png</file>
-        <file>icons/search.png</file>
-        <file>icons/settings.png</file>
-        <file>icons/shield-check.png</file>
-        <file>icons/square.png</file>
-        <file>icons/trash-2.png</file>
-        <file>icons/user.png</file>
-        <file>icons/users-round.png</file>
-        <file>icons/users.png</file>
-        <file>icons/x.png</file>
+        <file>icons/bell_dot.png</file>
+        <file>icons/check_w.png</file>
+        <file>icons/chev_w.png</file>
+        <file>icons/download_w.png</file>
+        <file>icons/edit_b.png</file>
+        <file>icons/eye_b.png</file>
+        <file>icons/f_brief.png</file>
+        <file>icons/f_brief@2x.png</file>
+        <file>icons/f_build.png</file>
+        <file>icons/f_build@2x.png</file>
+        <file>icons/f_cal.png</file>
+        <file>icons/f_cal@2x.png</file>
+        <file>icons/f_idcard.png</file>
+        <file>icons/f_idcard@2x.png</file>
+        <file>icons/f_mail.png</file>
+        <file>icons/f_mail@2x.png</file>
+        <file>icons/f_search.png</file>
+        <file>icons/f_search@2x.png</file>
+        <file>icons/f_user.png</file>
+        <file>icons/f_user@2x.png</file>
+        <file>icons/f_users.png</file>
+        <file>icons/f_users@2x.png</file>
+        <file>icons/home_c.png</file>
+        <file>icons/info_c.png</file>
+        <file>icons/kpi_folder.png</file>
+        <file>icons/kpi_grid.png</file>
+        <file>icons/kpi_shield.png</file>
+        <file>icons/kpi_users.png</file>
+        <file>icons/login_check.png</file>
+        <file>icons/login_eye.png</file>
+        <file>icons/login_eye_off.png</file>
+        <file>icons/login_f_lock.png</file>
+        <file>icons/login_f_lock@2x.png</file>
+        <file>icons/login_f_user.png</file>
+        <file>icons/login_f_user@2x.png</file>
+        <file>icons/nav_award_a.png</file>
+        <file>icons/nav_award_n.png</file>
+        <file>icons/nav_cpu_a.png</file>
+        <file>icons/nav_cpu_n.png</file>
+        <file>icons/nav_folder_a.png</file>
+        <file>icons/nav_folder_n.png</file>
+        <file>icons/nav_gear_a.png</file>
+        <file>icons/nav_gear_n.png</file>
+        <file>icons/nav_grid_a.png</file>
+        <file>icons/nav_grid_n.png</file>
+        <file>icons/nav_home_a.png</file>
+        <file>icons/nav_home_n.png</file>
+        <file>icons/nav_logout_n.png</file>
+        <file>icons/nav_shield_a.png</file>
+        <file>icons/nav_shield_n.png</file>
+        <file>icons/nav_user_a.png</file>
+        <file>icons/nav_user_n.png</file>
+        <file>icons/nav_users_a.png</file>
+        <file>icons/nav_users_n.png</file>
+        <file>icons/plus_circle.png</file>
+        <file>icons/plus_w.png</file>
+        <file>icons/refresh_w.png</file>
+        <file>icons/search_g.png</file>
+        <file>icons/sort_w.png</file>
+        <file>icons/ti_award.png</file>
+        <file>icons/ti_cpu.png</file>
+        <file>icons/ti_folder.png</file>
+        <file>icons/ti_gear.png</file>
+        <file>icons/ti_grid.png</file>
+        <file>icons/ti_home.png</file>
+        <file>icons/ti_shield.png</file>
+        <file>icons/ti_user.png</file>
+        <file>icons/ti_users.png</file>
+        <file>icons/title_users.png</file>
+        <file>icons/trash_r.png</file>
+        <file>icons/user_w.png</file>
+        <file>icons/userplus_w.png</file>
+        <file>icons/users_c.png</file>
+        <file>img/login_illustration.png</file>
+        <file>img/login_logo.png</file>
+        <file>img/logo_full.png</file>
+        <file>img/logo_icon.png</file>
+    </qresource>
+    <qresource prefix="/part">
+        <file alias="arrow-up-down.png">icons_participants/arrow-up-down.png</file>
+        <file alias="bell.png">icons_participants/bell.png</file>
+        <file alias="calendar-days.png">icons_participants/calendar-days.png</file>
+        <file alias="chevron-down-small.png">icons_participants/chevron-down-small.png</file>
+        <file alias="chevron-down.png">icons_participants/chevron-down.png</file>
+        <file alias="chevron-left.png">icons_participants/chevron-left.png</file>
+        <file alias="chevron-right.png">icons_participants/chevron-right.png</file>
+        <file alias="circle-plus.png">icons_participants/circle-plus.png</file>
+        <file alias="clipboard-list.png">icons_participants/clipboard-list.png</file>
+        <file alias="download.png">icons_participants/download.png</file>
+        <file alias="eye.png">icons_participants/eye.png</file>
+        <file alias="house.png">icons_participants/house.png</file>
+        <file alias="info.png">icons_participants/info.png</file>
+        <file alias="layers.png">icons_participants/layers.png</file>
+        <file alias="lightbulb.png">icons_participants/lightbulb.png</file>
+        <file alias="mail.png">icons_participants/mail.png</file>
+        <file alias="minus.png">icons_participants/minus.png</file>
+        <file alias="network.png">icons_participants/network.png</file>
+        <file alias="pencil.png">icons_participants/pencil.png</file>
+        <file alias="plus.png">icons_participants/plus.png</file>
+        <file alias="rotate-cw.png">icons_participants/rotate-cw.png</file>
+        <file alias="search.png">icons_participants/search.png</file>
+        <file alias="settings.png">icons_participants/settings.png</file>
+        <file alias="shield-check.png">icons_participants/shield-check.png</file>
+        <file alias="square.png">icons_participants/square.png</file>
+        <file alias="trash-2.png">icons_participants/trash-2.png</file>
+        <file alias="user.png">icons_participants/user.png</file>
+        <file alias="users-round.png">icons_participants/users-round.png</file>
+        <file alias="users.png">icons_participants/users.png</file>
+        <file alias="x.png">icons_participants/x.png</file>
     </qresource>
 </RCC>

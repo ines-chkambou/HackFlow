@@ -2,128 +2,111 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
-#include <QDateTime>
-#include <QList>
-#include <QPixmap>
+#include <QComboBox>
+#include <QStringList>
+#include <QWidget>
+#include <QVector>
 #include <QString>
+#include <QColor>
 
-QT_BEGIN_NAMESPACE
+class QCheckBox;
+class QStandardItemModel;
+class ParticipantsController;   // module Participants (participantscontroller.h)
 namespace Ui { class MainWindow; }
-QT_END_NAMESPACE
 
-struct Participant
+// ===========================================================================
+//  Graphiques (anciennement chartwidgets.h / .cpp)
+// ===========================================================================
+struct ChartItem {
+    QString label;
+    double  value = 0;
+    QColor  color;
+};
+typedef QVector<ChartItem> ChartData;
+
+class ChartBase : public QWidget
 {
-    int     id = 0;
-    QString nom;
-    QString prenom;
-    QString email;
-    QString telephone;
-    QString pieceJointe;
-    QString role;
-    QString equipe;
-    QString dispo;
+    Q_OBJECT
+public:
+    explicit ChartBase(QWidget *parent = nullptr);
+    void setData(const ChartData &data);
+    QSize minimumSizeHint() const override { return QSize(200, 120); }
+protected:
+    ChartData m_data;
 };
 
-class QStackedWidget;
-class QFrame;
-class QPushButton;
-class QTimer;
-class QAction;
-
-struct Notification
+// Donut avec total au centre + legende (nom, effectif, pourcentage)
+class PieChartWidget : public ChartBase
 {
-    QString   titre;
-    QString   texte;
-    QDateTime date;
-    bool      lue = false;
-    int       participantId = -1;      // >0 : un clic ouvre la fiche du participant
+    Q_OBJECT
+public:
+    explicit PieChartWidget(QWidget *parent = nullptr) : ChartBase(parent) {}
+    void setCenterCaption(const QString &c) { m_caption = c; update(); }
+protected:
+    void paintEvent(QPaintEvent *) override;
+private:
+    QString m_caption = "Employés";
 };
 
-class QLabel;
-class QMenu;
+// Histogramme
+class BarChartWidget : public ChartBase
+{
+    Q_OBJECT
+public:
+    explicit BarChartWidget(QWidget *parent = nullptr) : ChartBase(parent) {}
+protected:
+    void paintEvent(QPaintEvent *) override;
+};
 
+// ===========================================================================
+//  Liste deroulante a choix multiples (anciennement checkcombobox.h / .cpp)
+//  utilisee pour "Equipe(s)"
+// ===========================================================================
+class CheckComboBox : public QComboBox
+{
+    Q_OBJECT
+public:
+    explicit CheckComboBox(QWidget *parent = nullptr);
+    void        setItems(const QStringList &items);
+    QStringList checkedItems() const;
+    void        setCheckedItems(const QStringList &items);   // ajoute les valeurs inconnues
+    void        clearChecked();
+protected:
+    bool eventFilter(QObject *obj, QEvent *ev) override;
+private:
+    QStandardItemModel *m_model;
+    void updateText();
+    void addItem_(const QString &t);
+};
+
+// ===========================================================================
+//  Fenetre principale (anciennement GSmartHackathon)
+// ===========================================================================
+// Phase "interface graphique" (un seul fichier .ui, vues = pages de QStackedWidget) :
+//  - seuls les boutons de NAVIGATION fonctionnent :
+//      "Se connecter"            : Connexion  -> application (Tableau de bord)
+//      menu de gauche            : change de page dans "stackedPages"
+//      "Deconnexion"             : application -> Connexion
+//  - tous les boutons d'ACTION (Ajouter, Vider, Trier, Exporter, modifier, supprimer,
+//    oeil du mot de passe, mot de passe oublie, creer un compte...) sont uniquement
+//    visuels : aucun traitement n'est branche dessus.
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
-
 public:
     explicit MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
-protected:
-    bool eventFilter(QObject *obj, QEvent *ev) override;
-
-private slots:
-    void onAjouter();
-    void onVider();
-    void onFiltersChanged();
-    void onSortClicked();
-    void onExporter();
-    void onPrevPage();
-    void onNextPage();
-    void onHeaderClicked(int section);
-
-    void onView(int id);
-    void onEdit(int id);
-    void onDelete(int id);
-
 private:
-    void setupLogo();
-    void setupNavigation();
-    void setupIcons();
-    void setupNotifications();
-    void addNotification(const QString &titre, const QString &texte, int participantId = -1);
-    void updateNotifBadge();
-    void showNotifications();
-    void showToast(const QString &titre, const QString &texte);
-    void saveNotifs() const;
-    void loadNotifs();
-    static QString notifFilePath();
-    void setupSortMenu();
-    void updateSortUi();
-    QWidget *makePage(const QString &icon, const QString &title,
-                      const QString &accent, const QString &subtitle);
-    void applyStyleSheet();
-    void setupCombos();
-    void setupTable();
-    bool setPdfAttachment(const QString &path, bool detectTeam = true);
-    void detectTeamFromPdf(const QString &path);   // lit le CV et sélectionne l'équipe
-    void clearPdfAttachment();
-    void loadSampleData();
-    bool loadData();            // lit participants.json (false si absent/invalide)
-    void sendConfirmationSms(const Participant &p);   // point d'entrée pour un vrai service SMS
-    void saveData() const;      // écrit participants.json
-    static QString dataFilePath();
-    void refreshTable();
+    Ui::MainWindow *ui;
+    QCheckBox *m_headCheck = nullptr;
+    ParticipantsController *m_participants = nullptr;   // logique de la page Participants
 
-    QList<Participant> filteredData() const;
-    int  indexOfId(int id) const;
-
-    QWidget *makeBadge(const QString &text, const QString &kind);
-    QWidget *makeCheckCell();
-    QWidget *makeActionsCell(int id);
-    QPixmap  makeAvatar(const QString &initials, int colorIndex, int size = 34) const;
-
-    Ui::MainWindow     *ui;
-    QStackedWidget     *m_stack = nullptr;
-    QList<Notification> m_notifs;
-    QLabel             *m_notifBadge = nullptr;
-    QFrame             *m_notifPanel = nullptr;   // panneau intégré à la fenêtre (pas de fenêtre flottante)
-    QPushButton        *m_toast = nullptr;
-    QTimer             *m_toastTimer = nullptr;
-    QList<Participant>  m_data;
-    int                 m_nextId   = 1;
-    int                 m_editingId = -1;
-    QString             m_pdfPath;
-    int                 m_page     = 1;
-    const int           m_pageSize = 10;
-    enum class SortKey { None, Id, Nom, Role, Statut };
-    SortKey             m_sortKey = SortKey::None;
-    bool                m_sortAsc = true;
-    QMenu              *m_sortMenu = nullptr;
-    QList<QAction *>    m_sortKeyActions;     // ID, Nom, Rôle, Statut
-    QAction            *m_actAsc  = nullptr;
-    QAction            *m_actDesc = nullptr;
+    void setupNavigation();     // boutons de navigation -> pages des QStackedWidget
+    void showConnexion();       // page Connexion (fenetre 960 x 640)
+    void showApplication();     // application (menu + pages), fenetre agrandie
+    void setupDecor();          // donnees d'exemple affichees (tableau, graphiques)
+    void positionHeaderCheck(); // placement de la case de l'en-tete (affichage uniquement)
 };
 
 #endif // MAINWINDOW_H
