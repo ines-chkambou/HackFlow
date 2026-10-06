@@ -1,3 +1,0 @@
-Omar Khaled - Ingénieur systèmes embarqués
-Compétences : Arduino, Raspberry Pi, ESP32, STM32, MQTT, IoT, capteurs, microcontrôleur, FreeRTOS, VHDL, FPGA, électronique, robotique, C++, langage C, PCB.
-Projets : station météo connectée IoT (ESP32 + MQTT), robot suiveur de ligne Arduino, système embarqué temps réel sous FreeRTOS. 5 ans d'expérience en systèmes embarqués.

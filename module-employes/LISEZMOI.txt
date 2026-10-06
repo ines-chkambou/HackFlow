@@ -5,79 +5,24 @@ OUVRIR : Qt Creator > Fichier > Ouvrir un fichier ou un projet > SmartHackathon.
 
 CONVENTIONS DU DOCUMENT "BONNES PRATIQUES"
   - projet "SmartHackathon", systeme de build qmake
-  - classe principale GSmartHackathon (G = Gestion) : gsmarthackathon.h / .cpp / .ui
+  - classe principale MainWindow : mainwindow.h / .cpp / .ui
   - UN SEUL fichier .ui ; les vues sont des pages de QStackedWidget
       stackedMain  : page 0 = Connexion, page 1 = application
       stackedPages : Accueil, Participants, Equipes, Projets, Mentors, Employes,
-                     Equipements, Jury, Parametres  (Mentors et Equipements : retires du menu)
+                     Equipements, Jury, Parametres
 
 PARCOURS (document Word : Connexion -> Tableau de bord -> modules)
-  Connexion --[Se connecter : verification du compte]--> Tableau de bord --[menu de gauche]--> chaque module
+  Connexion --[Se connecter]--> Tableau de bord --[menu de gauche]--> chaque module
   application --[Deconnexion]--> Connexion
 
-TROIS METIERS INNOVANTS REALISES (+ creation de compte)
-================================
-1) AUTHENTIFICATION AVEC GESTION DES PRIVILEGES   (authmanager.h/.cpp)
-   - "Se connecter" verifie reellement le compte (e-mail ou nom d'utilisateur + mot de passe).
-   - Comptes stockes dans <AppData>/HackFlow/users.json ; mots de passe hashes PBKDF2-SHA256 + sel.
-   - Verrouillage de 60 s apres 5 echecs.
-   - "Se souvenir de moi" memorise l'e-mail ; l'oeil affiche/masque le mot de passe.
-   - Comptes de demonstration (crees au premier lancement) :
-         admin@hackflow.com         Admin@123     Administrateur
-         organisateur@hackflow.com  Orga@1234     Organisateur
-         technicien@hackflow.com    Tech@1234     Technicien
-         mentor@hackflow.com        Mentor@123    Mentor
-     (a changer / supprimer via Admin > Gerer les utilisateurs)
-   - Privileges par role (modifiables dans AuthManager::privilegesForRole) :
-         Administrateur : tout (+ Parametres, gestion des utilisateurs, configuration e-mail)
-         Organisateur   : tous les modules sauf Parametres ; employes : ajouter, modifier, exporter, affecter
-         Technicien     : Accueil, Equipes, Projets, Employes (lecture + export)
-         Mentor         : Accueil, Participants, Equipes, Projets, Jury
-         Visiteur       : Accueil seulement (role donne aux comptes crees via "Creer un compte")
-     Un module non autorise disparait du menu de gauche ; une action non autorisee est grisee
-     avec une info-bulle "Privilege requis : ...".
-   - Menu du bouton Admin (en haut a droite) : gerer les utilisateurs/roles (admin), configurer
-     l'e-mail (admin), se deconnecter.
-
-   - CREER UN COMPTE (inscription, createaccountdialog.*) : nom, e-mail, mot de passe (8 car. min.,
-     lettre + chiffre, confirmation). Si le SMTP est configure, un code a 6 chiffres est envoye
-     pour verifier l'adresse e-mail avant la creation ; sinon le compte est cree directement.
-     Le nouveau compte a le role "Visiteur" ; l'administrateur lui donne un autre role dans
-     Admin > Gerer les utilisateurs.
-   - Si la connexion refuse les comptes ci-dessus (ancien fichier de comptes), supprimer le dossier
-     HackFlow : Windows %APPDATA%\HackFlow | Linux ~/.local/share/HackFlow | macOS ~/Library/Application Support/HackFlow
-     (les comptes de demonstration sont alors recrees au prochain lancement).
-
-2) MOT DE PASSE OUBLIE (MAILING)                   (forgotpassworddialog.*, mailer.*)
-   - "Mot de passe oublie ?" -> saisie de l'e-mail -> code a 6 chiffres envoye par e-mail
-     (valable 10 min, 5 essais, renvoi possible apres 30 s) -> nouveau mot de passe
-     (8 caracteres min., lettre + chiffre).
-   - Envoi par SMTP (SSL / STARTTLS). A configurer UNE FOIS : connectez-vous en administrateur,
-     menu Admin > Configurer l'e-mail (SMTP), puis "Envoyer un e-mail de test".
-     Gmail : smtp.gmail.com, STARTTLS 587, utilisateur = votre adresse, mot de passe = "mot de
-     passe d'application" (validation en 2 etapes requise). Fichier : <AppData>/HackFlow/mail.ini.
-   - TANT QUE LE SMTP N'EST PAS CONFIGURE, aucun e-mail ne part : le message est enregistre en
-     .eml dans <AppData>/HackFlow/outbox (l'application l'indique clairement).
-
-3) ATTRIBUTION AUTOMATIQUE INTELLIGENTE (TRAITEMENT DE CV)   (cvanalyzer.*, cvassigndialog.*)
-   - Page Employes : selectionner un employe (ligne ou case a cocher) puis "Affecter a une equipe".
-   - Charger son CV (.docx, .txt, .md, et .pdf si le module Qt PDF est installe).
-   - L'application detecte les competences (9 domaines, ~250 mots-cles), calcule la compatibilite
-     avec chaque equipe, tient compte de la charge (effectif max 6, equipe pleine exclue, equipe
-     deja rejointe exclue), propose la meilleure equipe + role/departement a titre indicatif,
-     et verifie que l'e-mail du CV correspond a l'employe. Un clic sur "Affecter" met a jour la
-     colonne "Equipe(s)".
-   - Profils des equipes (Alpha=Web, Beta=IA/Data, Gamma=Mobile, Delta=IoT, Omega=Cyber/Cloud) :
-     tableau teamProfiles() dans cvanalyzer.cpp. Des CV d'essai sont dans le dossier exemples_cv/.
-   - Limite : pas d'OCR (un CV scanne en image ne peut pas etre lu).
-
-COMPILATION : le .pro ajoute QT += network concurrent gui-private (+ pdf si disponible).
-  "gui-private" utilise des en-tetes internes de Qt : le projet doit etre compile avec la meme
-  version de Qt que celle installee (normal avec Qt Creator).
-
-AUTRES BOUTONS D'ACTION : TOUJOURS VISUELS (aucun traitement branche)
-  - Employes : Ajouter, Vider, Consulter le profil, Trier, Exporter, icones oeil / crayon / poubelle, cloche.
+SEULS LES BOUTONS DE NAVIGATION FONCTIONNENT
+  - Se connecter, les 9 entrees du menu de gauche, Deconnexion.
+TOUS LES BOUTONS D'ACTION SONT VISUELS (aucun traitement branche)
+  - Connexion : oeil du mot de passe, "Mot de passe oublie ?", "Creer un compte"
+  - Employes : Ajouter, Vider, Consulter le profil, Affecter, Trier, Exporter,
+    icones oeil / crayon / poubelle, cloche, Admin.
+  Aucune verification de mot de passe : "Se connecter" ouvre directement le tableau de bord.
 
 INTEGRER LE MODULE D'UN AUTRE MEMBRE
-  Qt Designer > gsmarthackathon.ui > stackedPages > choisir la page (ex. pageParticipants)
+  Qt Designer > mainwindow.ui > stackedPages > choisir la page (ex. pageParticipants)
   et y deposer les widgets de la maquette. La page "Employes" (pageEmployes) est la notre.

@@ -1,3 +1,0 @@
-Yassine Jabri - Développeur mobile
-Compétences : Flutter, Dart, Kotlin, Android Studio, Jetpack Compose, Swift, SwiftUI, iOS, Firebase, React Native, API REST.
-Projets : application mobile de livraison (Flutter), application Android de gestion de tâches en Kotlin, publication sur Play Store et App Store. Développement mobile depuis 2 ans, expérience 2 ans.

@@ -1,3 +1,0 @@
-Ines Zribi - Ingénieure cybersécurité
-Compétences : cybersécurité, pentest, Kali Linux, Metasploit, Nmap, Wireshark, OWASP, cryptographie, firewall, VPN, Cisco, CCNA, TCP/IP, VLAN, SIEM, Docker, Linux, Ansible, AWS.
-Projets : audit de sécurité d'un réseau d'entreprise, CTF, déploiement d'un pare-feu et de VPN site-à-site. Expérience : 6 ans d'expérience. Mentorat et formation de jeunes ingénieurs, leadership d'équipe, coaching.
