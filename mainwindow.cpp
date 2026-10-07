@@ -79,14 +79,6 @@ void MainWindow::appliquerStyle()
         #labelDesc    { font-size: 11px; color: #9ca3af; }
         #labelIllustration { font-size: 90px; }
 
-        #btnDashboard {
-            color: white; font-weight: bold; font-size: 12px;
-            border: none; border-radius: 10px;
-            background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
-                        stop:0 #2563eb, stop:1 #7c3aed);
-        }
-        #btnDashboard:hover { background: #3b82f6; }
-
         /* ---------- Titre section ---------- */
         #labelQuick { font-size: 15px; font-weight: bold; color: #e5e7eb; }
 
@@ -139,11 +131,6 @@ void MainWindow::appliquerStyle()
 }
 
 /* ---------- Slots (à remplacer par l'ouverture de vos vraies fenêtres) ---------- */
-void MainWindow::on_btnDashboard_clicked()
-{
-    QMessageBox::information(this, "HackFlow", "Ouverture du tableau de bord…");
-}
-
 void MainWindow::on_btnParticipants_clicked()
 {
     QMessageBox::information(this, "Participants", "Gestion des participants");

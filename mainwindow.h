@@ -16,7 +16,6 @@ public:
     ~MainWindow();
 
 private slots:
-    void on_btnDashboard_clicked();
     void on_btnParticipants_clicked();
     void on_btnProjets_clicked();
     void on_btnEmployes_clicked();
