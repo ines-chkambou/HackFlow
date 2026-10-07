@@ -1,0 +1,646 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry"><rect><x>0</x><y>0</y><width>1200</width><height>720</height></rect></property>
+  <property name="minimumSize"><size><width>1000</width><height>620</height></size></property>
+  <property name="windowTitle"><string>HackFlow</string></property>
+  <property name="styleSheet"><string notr="true">QMainWindow, QDialog, QMessageBox {
+    background-color: #101B31;
+    color: #FFFFFF;
+    font-family: "Segoe UI", "Roboto", "Helvetica Neue", sans-serif;
+    font-size: 13px;
+}
+QWidget#pageJury { background-color: #101B31; }
+QLabel { background: transparent; color: #FFFFFF; }
+QLabel#labelTitle { font-size: 30px; font-weight: bold; }
+QLabel#labelSubtitle, QLabel#labelEvalSubtitle { color: #9FB0D0; font-size: 14px; }
+QLabel#labelCount { color: #9FB0D0; }
+QLabel#labelBrandName { font-size: 22px; font-weight: bold; color: #FFFFFF; }
+QLabel#labelBrandTagline { font-size: 10px; color: #4F86F7; }
+QLabel#labelDialogTitle { font-size: 18px; font-weight: bold; }
+
+/* ---------- Barre laterale ---------- */
+QFrame#sidebar { background-color: #0C1527; border-right: 1px solid #1C2740; }
+QFrame#sidebar QPushButton {
+    background-color: transparent;
+    color: #B7C3DE;
+    border: none;
+    border-radius: 10px;
+    padding: 0px 16px;
+    text-align: left;
+    font-size: 14px;
+}
+QFrame#sidebar QPushButton:hover { background-color: #1C2740; color: #FFFFFF; }
+QFrame#sidebar QPushButton:checked {
+    background-color: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #4B26A0, stop:1 #2F67E0);
+    color: #FFFFFF;
+    font-weight: bold;
+}
+QFrame#profileFrame { background-color: #1C2740; border-radius: 12px; border: none; }
+QLabel#labelAvatar {
+    background-color: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #4B26A0, stop:1 #2F67E0);
+    color: #FFFFFF; border-radius: 18px; font-weight: bold; font-size: 15px;
+}
+QLabel#labelAdminName { font-weight: bold; }
+QLabel#labelAdminMail { color: #9FB0D0; font-size: 11px; }
+
+/* ---------- Recherche + bouton ajouter ---------- */
+QLineEdit {
+    background-color: #1C2740;
+    border: 1px solid #2F3F66;
+    border-radius: 10px;
+    padding: 0px 12px;
+    color: #FFFFFF;
+    selection-background-color: #4B26A0;
+}
+QLineEdit:focus { border: 1px solid #0BF8F6; }
+QPushButton#btnAddMember, QPushButton#btnEvalSave {
+    background-color: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #4B26A0, stop:1 #2F67E0);
+    color: #FFFFFF;
+    border: none;
+    border-radius: 10px;
+    padding: 0px 22px;
+    font-weight: bold;
+    font-size: 14px;
+}
+QPushButton#btnAddMember:hover, QPushButton#btnEvalSave:hover { background-color: #2F67E0; }
+QPushButton#btnAddMember:pressed, QPushButton#btnEvalSave:pressed { background-color: #3A1D80; }
+
+/* ---------- Carte + tableau ---------- */
+QFrame#cardTableJury { background-color: #1C2740; border: 1px solid #2A3858; border-radius: 14px; }
+QTableWidget#tableJury {
+    background-color: transparent;
+    border: none;
+    color: #FFFFFF;
+    outline: 0;
+    gridline-color: transparent;
+}
+QTableWidget#tableJury::item {
+    padding-left: 8px;
+    border-bottom: 1px solid #2A3858;
+}
+QTableWidget#tableJury::item:hover { background-color: #22304F; }
+QTableWidget#tableJury::item:selected { background-color: #2A3A66; color: #FFFFFF; }
+QTableWidget#tableJury QLineEdit {
+    background-color: #101B31;
+    color: #FFFFFF;
+    border: 1px solid #0BF8F6;
+    border-radius: 6px;
+    padding: 0px 6px;
+}
+QHeaderView { background-color: transparent; }
+QHeaderView::section {
+    background-color: transparent;
+    color: #C8D3EE;
+    border: none;
+    border-bottom: 1px solid #2F3F66;
+    padding-left: 8px;
+    font-weight: bold;
+}
+QPushButton#btnEdit, QPushButton#btnDelete {
+    background-color: transparent;
+    border: none;
+    border-radius: 8px;
+}
+QPushButton#btnEdit:hover { background-color: #2F3F66; }
+QPushButton#btnDelete:hover { background-color: #4A2338; }
+
+QScrollBar:vertical { background: transparent; width: 12px; margin: 2px; }
+QScrollBar::handle:vertical { background: #3A4C7A; border-radius: 4px; min-height: 36px; }
+QScrollBar::handle:vertical:hover { background: #2F67E0; }
+QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical { height: 0px; }
+QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { background: transparent; }
+
+/* ---------- Page Jury defilante ---------- */
+QScrollArea#scrollAreaJury { background: transparent; border: none; }
+QWidget#scrollContentJury { background-color: #101B31; }
+
+/* ---------- Boutons Trier / Exporter ---------- */
+QPushButton#btnSort, QPushButton#btnExport {
+    background-color: #16213A;
+    color: #FFFFFF;
+    border: 1px solid #2F67E0;
+    border-radius: 10px;
+    padding: 0px 18px;
+    font-size: 14px;
+}
+QPushButton#btnSort:hover, QPushButton#btnExport:hover { border: 1px solid #0BF8F6; background-color: #1C2A4A; }
+QPushButton#btnSort:pressed, QPushButton#btnExport:pressed { background-color: #101B31; }
+
+QMenu { background-color: #1C2740; color: #FFFFFF; border: 1px solid #2F3F66; border-radius: 8px; padding: 6px; }
+QMenu::item { padding: 8px 26px; border-radius: 6px; }
+QMenu::item:selected { background-color: #4B26A0; }
+
+/* ---------- Fiche d'evaluation (liste verticale) ---------- */
+QLabel#labelEvalTitle { font-size: 22px; font-weight: bold; }
+QLabel#labelCardTitle { font-size: 15px; font-weight: bold; }
+QLabel#labelCardHint { color: #9FB0D0; font-size: 12px; }
+QLabel#labelFieldName { color: #C8D3EE; font-size: 12px; margin-top: 6px; }
+QLabel#labelScoreValue { color: #0BF8F6; font-weight: bold; min-width: 58px; }
+QLabel#labelTotalScore { color: #0BF8F6; font-size: 17px; font-weight: bold; }
+QFrame#evalCard { background-color: #1C2740; border: 1px solid #2A3858; border-radius: 14px; }
+QFrame#evalCard QLineEdit, QFrame#evalCard QComboBox, QFrame#evalCard QPlainTextEdit {
+    background-color: #101B31;
+    color: #FFFFFF;
+    border: 1px solid #2F3F66;
+    border-radius: 8px;
+    padding: 4px 12px;
+    selection-background-color: #4B26A0;
+}
+QFrame#evalCard QLineEdit, QFrame#evalCard QComboBox { min-height: 34px; }
+QFrame#evalCard QLineEdit:focus, QFrame#evalCard QComboBox:focus, QFrame#evalCard QPlainTextEdit:focus { border: 1px solid #0BF8F6; }
+QComboBox::drop-down { border: none; width: 30px; }
+QComboBox::down-arrow { image: url(:/images/icons/chevron-down-small.png); width: 14px; height: 14px; }
+QComboBox QAbstractItemView {
+    background-color: #1C2740; color: #FFFFFF; border: 1px solid #2F3F66;
+    selection-background-color: #4B26A0; outline: 0;
+}
+QSlider::groove:horizontal { height: 6px; background: #2F3F66; border-radius: 3px; }
+QSlider::sub-page:horizontal {
+    background-color: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #4B26A0, stop:1 #2F67E0);
+    border-radius: 3px;
+}
+QSlider::handle:horizontal { background: #0BF8F6; width: 16px; height: 16px; margin: -5px 0px; border-radius: 8px; }
+QPushButton#btnEvalSave, QPushButton#btnEvalReset { border-radius: 10px; padding: 0px 22px; font-weight: bold; font-size: 14px; }
+QPushButton#btnEvalReset { background-color: transparent; color: #C8D3EE; border: 1px solid #2F3F66; }
+QPushButton#btnEvalReset:hover { border: 1px solid #0BF8F6; color: #0BF8F6; }
+
+/* ---------- Pagination ---------- */
+QPushButton#btnPrev, QPushButton#btnNext, QPushButton#btnPage {
+    background-color: #1C2740;
+    color: #FFFFFF;
+    border: 1px solid #2F3F66;
+    border-radius: 8px;
+    font-size: 15px;
+}
+QPushButton#btnPrev:hover, QPushButton#btnNext:hover, QPushButton#btnPage:hover {
+    border: 1px solid #0BF8F6;
+}
+QPushButton#btnPage:checked {
+    background-color: #4B26A0;
+    border: 1px solid #4B26A0;
+    font-weight: bold;
+}
+QPushButton#btnPrev:disabled, QPushButton#btnNext:disabled { color: #4D5B7E; border: 1px solid #243253; }
+
+/* ---------- Boites de dialogue ---------- */
+QDialog QPushButton, QMessageBox QPushButton {
+    background-color: #2F67E0;
+    color: #FFFFFF;
+    border: none;
+    border-radius: 8px;
+    padding: 8px 20px;
+    min-width: 80px;
+}
+QDialog QPushButton:hover, QMessageBox QPushButton:hover { background-color: #4B26A0; }
+QDialog QLineEdit { min-height: 34px; }
+</string></property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QHBoxLayout" name="horizontalLayout_main">
+    <property name="spacing"><number>0</number></property>
+    <property name="leftMargin"><number>0</number></property>
+<property name="topMargin"><number>0</number></property>
+<property name="rightMargin"><number>0</number></property>
+<property name="bottomMargin"><number>0</number></property>
+
+    <item>
+     <widget class="QFrame" name="sidebar">
+      <property name="minimumSize"><size><width>260</width><height>0</height></size></property>
+      <property name="maximumSize"><size><width>260</width><height>16777215</height></size></property>
+      <property name="frameShape"><enum>QFrame::NoFrame</enum></property>
+      <layout class="QVBoxLayout" name="verticalLayout_sidebar">
+       <property name="spacing"><number>6</number></property>
+       <property name="leftMargin"><number>16</number></property>
+<property name="topMargin"><number>16</number></property>
+<property name="rightMargin"><number>16</number></property>
+<property name="bottomMargin"><number>16</number></property>
+       <item>
+        <widget class="QWidget" name="brandHeader" native="true">
+         <property name="minimumSize"><size><width>0</width><height>64</height></size></property>
+         <layout class="QHBoxLayout" name="horizontalLayout_brand">
+          <property name="spacing"><number>12</number></property>
+          <property name="leftMargin"><number>4</number></property>
+<property name="topMargin"><number>0</number></property>
+<property name="rightMargin"><number>4</number></property>
+<property name="bottomMargin"><number>0</number></property>
+          <item>
+           <widget class="QLabel" name="labelLogo">
+            <property name="alignment"><set>Qt::AlignCenter</set></property>
+           </widget>
+          </item>
+          <item>
+           <layout class="QVBoxLayout" name="verticalLayout_brandText">
+            <property name="spacing"><number>1</number></property>
+            <item>
+             <widget class="QLabel" name="labelBrandName">
+              <property name="text"><string>HackFlow</string></property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QLabel" name="labelBrandTagline">
+              <property name="text"><string>organisez -collaborez-innovez</string></property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <spacer name="horizontalSpacer_brand">
+            <property name="orientation"><enum>Qt::Horizontal</enum></property>
+            <property name="sizeHint" stdset="0"><size><width>0</width><height>20</height></size></property>
+           </spacer>
+          </item>
+         </layout>
+        </widget>
+       </item>
+       <item>
+        <spacer name="verticalSpacer_logo">
+         <property name="orientation"><enum>Qt::Vertical</enum></property>
+         <property name="sizeType"><enum>QSizePolicy::Fixed</enum></property>
+         <property name="sizeHint" stdset="0"><size><width>20</width><height>14</height></size></property>
+        </spacer>
+       </item>
+<item>
+<widget class="QPushButton" name="btnNavAccueil">
+<property name="minimumSize"><size><width>0</width><height>44</height></size></property>
+<property name="maximumSize"><size><width>16777215</width><height>44</height></size></property>
+<property name="cursor"><cursorShape>PointingHandCursor</cursorShape></property>
+<property name="text"><string>Accueil</string></property>
+<property name="checkable"><bool>true</bool></property>
+
+<property name="autoExclusive"><bool>true</bool></property>
+</widget>
+</item>
+<item>
+<widget class="QPushButton" name="btnNavParticipants">
+<property name="minimumSize"><size><width>0</width><height>44</height></size></property>
+<property name="maximumSize"><size><width>16777215</width><height>44</height></size></property>
+<property name="cursor"><cursorShape>PointingHandCursor</cursorShape></property>
+<property name="text"><string>Participants</string></property>
+<property name="checkable"><bool>true</bool></property>
+
+<property name="autoExclusive"><bool>true</bool></property>
+</widget>
+</item>
+<item>
+<widget class="QPushButton" name="btnNavEquipes">
+<property name="minimumSize"><size><width>0</width><height>44</height></size></property>
+<property name="maximumSize"><size><width>16777215</width><height>44</height></size></property>
+<property name="cursor"><cursorShape>PointingHandCursor</cursorShape></property>
+<property name="text"><string>Équipes</string></property>
+<property name="checkable"><bool>true</bool></property>
+
+<property name="autoExclusive"><bool>true</bool></property>
+</widget>
+</item>
+<item>
+<widget class="QPushButton" name="btnNavProjets">
+<property name="minimumSize"><size><width>0</width><height>44</height></size></property>
+<property name="maximumSize"><size><width>16777215</width><height>44</height></size></property>
+<property name="cursor"><cursorShape>PointingHandCursor</cursorShape></property>
+<property name="text"><string>Projets</string></property>
+<property name="checkable"><bool>true</bool></property>
+
+<property name="autoExclusive"><bool>true</bool></property>
+</widget>
+</item>
+<item>
+<widget class="QPushButton" name="btnNavMentors">
+<property name="minimumSize"><size><width>0</width><height>44</height></size></property>
+<property name="maximumSize"><size><width>16777215</width><height>44</height></size></property>
+<property name="cursor"><cursorShape>PointingHandCursor</cursorShape></property>
+<property name="text"><string>Mentors</string></property>
+<property name="checkable"><bool>true</bool></property>
+
+<property name="autoExclusive"><bool>true</bool></property>
+</widget>
+</item>
+<item>
+<widget class="QPushButton" name="btnNavEmployes">
+<property name="minimumSize"><size><width>0</width><height>44</height></size></property>
+<property name="maximumSize"><size><width>16777215</width><height>44</height></size></property>
+<property name="cursor"><cursorShape>PointingHandCursor</cursorShape></property>
+<property name="text"><string>Employés</string></property>
+<property name="checkable"><bool>true</bool></property>
+
+<property name="autoExclusive"><bool>true</bool></property>
+</widget>
+</item>
+<item>
+<widget class="QPushButton" name="btnNavEquipements">
+<property name="minimumSize"><size><width>0</width><height>44</height></size></property>
+<property name="maximumSize"><size><width>16777215</width><height>44</height></size></property>
+<property name="cursor"><cursorShape>PointingHandCursor</cursorShape></property>
+<property name="text"><string>Équipements</string></property>
+<property name="checkable"><bool>true</bool></property>
+
+<property name="autoExclusive"><bool>true</bool></property>
+</widget>
+</item>
+<item>
+<widget class="QPushButton" name="btnNavJury">
+<property name="minimumSize"><size><width>0</width><height>44</height></size></property>
+<property name="maximumSize"><size><width>16777215</width><height>44</height></size></property>
+<property name="cursor"><cursorShape>PointingHandCursor</cursorShape></property>
+<property name="text"><string>Jury</string></property>
+<property name="checkable"><bool>true</bool></property>
+<property name="checked"><bool>true</bool></property>
+<property name="autoExclusive"><bool>true</bool></property>
+</widget>
+</item>
+<item>
+<widget class="QPushButton" name="btnNavParametres">
+<property name="minimumSize"><size><width>0</width><height>44</height></size></property>
+<property name="maximumSize"><size><width>16777215</width><height>44</height></size></property>
+<property name="cursor"><cursorShape>PointingHandCursor</cursorShape></property>
+<property name="text"><string>Paramètres</string></property>
+<property name="checkable"><bool>true</bool></property>
+
+<property name="autoExclusive"><bool>true</bool></property>
+</widget>
+</item>
+
+       <item>
+        <spacer name="verticalSpacer_sidebar">
+         <property name="orientation"><enum>Qt::Vertical</enum></property>
+         <property name="sizeHint" stdset="0"><size><width>20</width><height>40</height></size></property>
+        </spacer>
+       </item>
+       <item>
+        <widget class="QFrame" name="profileFrame">
+         <property name="minimumSize"><size><width>0</width><height>64</height></size></property>
+         <property name="maximumSize"><size><width>16777215</width><height>64</height></size></property>
+         <layout class="QHBoxLayout" name="horizontalLayout_profile">
+          <property name="spacing"><number>10</number></property>
+          <property name="leftMargin"><number>12</number></property>
+<property name="topMargin"><number>8</number></property>
+<property name="rightMargin"><number>12</number></property>
+<property name="bottomMargin"><number>8</number></property>
+          <item>
+           <widget class="QLabel" name="labelAvatar">
+            <property name="minimumSize"><size><width>36</width><height>36</height></size></property>
+            <property name="maximumSize"><size><width>36</width><height>36</height></size></property>
+            <property name="text"><string>A</string></property>
+            <property name="alignment"><set>Qt::AlignCenter</set></property>
+           </widget>
+          </item>
+          <item>
+           <layout class="QVBoxLayout" name="verticalLayout_profileText">
+            <property name="spacing"><number>0</number></property>
+            <item><widget class="QLabel" name="labelAdminName"><property name="text"><string>Admin</string></property></widget></item>
+            <item><widget class="QLabel" name="labelAdminMail"><property name="text"><string>admin@hackflow.com</string></property></widget></item>
+           </layout>
+          </item>
+         </layout>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </item>
+
+    <item>
+     <widget class="QStackedWidget" name="stackedWidget">
+      <property name="currentIndex"><number>0</number></property>
+      <widget class="QWidget" name="pageJury">
+       <layout class="QVBoxLayout" name="verticalLayout_pageJury">
+        <property name="spacing"><number>0</number></property>
+        <property name="leftMargin"><number>0</number></property>
+<property name="topMargin"><number>0</number></property>
+<property name="rightMargin"><number>0</number></property>
+<property name="bottomMargin"><number>0</number></property>
+        <item>
+         <widget class="QScrollArea" name="scrollAreaJury">
+          <property name="focusPolicy"><enum>Qt::StrongFocus</enum></property>
+          <property name="frameShape"><enum>QFrame::NoFrame</enum></property>
+          <property name="horizontalScrollBarPolicy"><enum>Qt::ScrollBarAlwaysOff</enum></property>
+          <property name="widgetResizable"><bool>true</bool></property>
+          <widget class="QWidget" name="scrollContentJury">
+           <property name="geometry"><rect><x>0</x><y>0</y><width>900</width><height>1800</height></rect></property>
+           <layout class="QVBoxLayout" name="verticalLayout_scrollContent">
+            <property name="spacing"><number>16</number></property>
+            <property name="leftMargin"><number>28</number></property>
+<property name="topMargin"><number>24</number></property>
+<property name="rightMargin"><number>28</number></property>
+<property name="bottomMargin"><number>28</number></property>
+
+            <item>
+             <widget class="QWidget" name="headerJury" native="true">
+              <layout class="QVBoxLayout" name="verticalLayout_headerJury">
+               <property name="spacing"><number>2</number></property>
+               <property name="leftMargin"><number>0</number></property>
+<property name="topMargin"><number>0</number></property>
+<property name="rightMargin"><number>0</number></property>
+<property name="bottomMargin"><number>0</number></property>
+               <item><widget class="QLabel" name="labelTitle"><property name="text"><string>Jury</string></property></widget></item>
+               <item><widget class="QLabel" name="labelSubtitle"><property name="text"><string>Liste des membres du jury</string></property></widget></item>
+              </layout>
+             </widget>
+            </item>
+
+            <item>
+             <widget class="QWidget" name="toolbarJury" native="true">
+              <property name="minimumSize"><size><width>0</width><height>46</height></size></property>
+              <property name="maximumSize"><size><width>16777215</width><height>46</height></size></property>
+              <layout class="QHBoxLayout" name="horizontalLayout_toolbarJury">
+               <property name="spacing"><number>14</number></property>
+               <property name="leftMargin"><number>0</number></property>
+<property name="topMargin"><number>0</number></property>
+<property name="rightMargin"><number>0</number></property>
+<property name="bottomMargin"><number>0</number></property>
+               <item>
+                <widget class="QLineEdit" name="lineEditSearch">
+                 <property name="minimumSize"><size><width>0</width><height>46</height></size></property>
+                 <property name="maximumSize"><size><width>16777215</width><height>46</height></size></property>
+                 <property name="placeholderText"><string>Rechercher un membre...</string></property>
+                 <property name="clearButtonEnabled"><bool>true</bool></property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QPushButton" name="btnAddMember">
+                 <property name="minimumSize"><size><width>200</width><height>46</height></size></property>
+                 <property name="maximumSize"><size><width>200</width><height>46</height></size></property>
+                 <property name="cursor"><cursorShape>PointingHandCursor</cursorShape></property>
+                 <property name="text"><string>+  Ajouter un membre</string></property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QPushButton" name="btnSort">
+                 <property name="minimumSize"><size><width>150</width><height>46</height></size></property>
+                 <property name="maximumSize"><size><width>150</width><height>46</height></size></property>
+                 <property name="cursor"><cursorShape>PointingHandCursor</cursorShape></property>
+                 <property name="text"><string>Trier</string></property>
+                </widget>
+               </item>
+              </layout>
+             </widget>
+            </item>
+
+            <item>
+             <widget class="QWidget" name="exportRowJury" native="true">
+              <property name="minimumSize"><size><width>0</width><height>42</height></size></property>
+              <property name="maximumSize"><size><width>16777215</width><height>42</height></size></property>
+              <layout class="QHBoxLayout" name="horizontalLayout_exportRow">
+               <property name="spacing"><number>0</number></property>
+               <property name="leftMargin"><number>0</number></property>
+<property name="topMargin"><number>0</number></property>
+<property name="rightMargin"><number>0</number></property>
+<property name="bottomMargin"><number>0</number></property>
+               <item>
+                <spacer name="horizontalSpacer_export">
+                 <property name="orientation"><enum>Qt::Horizontal</enum></property>
+                 <property name="sizeHint" stdset="0"><size><width>40</width><height>20</height></size></property>
+                </spacer>
+               </item>
+               <item>
+                <widget class="QPushButton" name="btnExport">
+                 <property name="minimumSize"><size><width>150</width><height>40</height></size></property>
+                 <property name="maximumSize"><size><width>150</width><height>40</height></size></property>
+                 <property name="cursor"><cursorShape>PointingHandCursor</cursorShape></property>
+                 <property name="text"><string>Exporter</string></property>
+                </widget>
+               </item>
+              </layout>
+             </widget>
+            </item>
+
+            <item>
+             <widget class="QFrame" name="cardTableJury">
+              <property name="minimumSize"><size><width>0</width><height>366</height></size></property>
+              <property name="maximumSize"><size><width>16777215</width><height>366</height></size></property>
+              <property name="frameShape"><enum>QFrame::StyledPanel</enum></property>
+              <layout class="QVBoxLayout" name="verticalLayout_cardTable">
+               <property name="spacing"><number>0</number></property>
+               <property name="leftMargin"><number>12</number></property>
+<property name="topMargin"><number>8</number></property>
+<property name="rightMargin"><number>12</number></property>
+<property name="bottomMargin"><number>8</number></property>
+               <item>
+                <widget class="QTableWidget" name="tableJury">
+                 <property name="frameShape"><enum>QFrame::NoFrame</enum></property>
+                 <property name="verticalScrollBarPolicy"><enum>Qt::ScrollBarAlwaysOff</enum></property>
+<column><property name="text"><string>Nom</string></property></column>
+<column><property name="text"><string>Prénom</string></property></column>
+<column><property name="text"><string>E-mail</string></property></column>
+<column><property name="text"><string>Téléphone</string></property></column>
+<column><property name="text"><string>Spécialité</string></property></column>
+<column><property name="text"><string>Entreprise</string></property></column>
+<column><property name="text"><string>Actions</string></property></column>
+                </widget>
+               </item>
+              </layout>
+             </widget>
+            </item>
+
+            <item>
+             <widget class="QWidget" name="footerJury" native="true">
+              <property name="minimumSize"><size><width>0</width><height>36</height></size></property>
+              <property name="maximumSize"><size><width>16777215</width><height>36</height></size></property>
+              <layout class="QHBoxLayout" name="horizontalLayout_footerJury">
+               <property name="spacing"><number>6</number></property>
+               <property name="leftMargin"><number>0</number></property>
+<property name="topMargin"><number>0</number></property>
+<property name="rightMargin"><number>0</number></property>
+<property name="bottomMargin"><number>0</number></property>
+               <item><widget class="QLabel" name="labelCount"><property name="text"><string>Affichage</string></property></widget></item>
+               <item>
+                <spacer name="horizontalSpacer_footer">
+                 <property name="orientation"><enum>Qt::Horizontal</enum></property>
+                 <property name="sizeHint" stdset="0"><size><width>40</width><height>20</height></size></property>
+                </spacer>
+               </item>
+               <item>
+                <widget class="QPushButton" name="btnPrev">
+                 <property name="minimumSize"><size><width>34</width><height>34</height></size></property>
+                 <property name="maximumSize"><size><width>34</width><height>34</height></size></property>
+                 <property name="cursor"><cursorShape>PointingHandCursor</cursorShape></property>
+                 <property name="text"><string></string></property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QWidget" name="pagesContainer" native="true">
+                 <layout class="QHBoxLayout" name="pagesLayout">
+                  <property name="spacing"><number>6</number></property>
+                  <property name="leftMargin"><number>0</number></property>
+<property name="topMargin"><number>0</number></property>
+<property name="rightMargin"><number>0</number></property>
+<property name="bottomMargin"><number>0</number></property>
+                 </layout>
+                </widget>
+               </item>
+               <item>
+                <widget class="QPushButton" name="btnNext">
+                 <property name="minimumSize"><size><width>34</width><height>34</height></size></property>
+                 <property name="maximumSize"><size><width>34</width><height>34</height></size></property>
+                 <property name="cursor"><cursorShape>PointingHandCursor</cursorShape></property>
+                 <property name="text"><string></string></property>
+                </widget>
+               </item>
+              </layout>
+             </widget>
+            </item>
+
+            <item>
+             <widget class="QWidget" name="evalSection" native="true">
+              <layout class="QVBoxLayout" name="verticalLayout_eval">
+               <property name="spacing"><number>6</number></property>
+               <property name="leftMargin"><number>0</number></property>
+<property name="topMargin"><number>20</number></property>
+<property name="rightMargin"><number>0</number></property>
+<property name="bottomMargin"><number>0</number></property>
+               <item><widget class="QLabel" name="labelEvalTitle"><property name="text"><string>Fiche d'évaluation du jury</string></property></widget></item>
+               <item><widget class="QLabel" name="labelEvalSubtitle"><property name="text"><string>Toutes les rubriques sont sur cette page : faites défiler vers le bas pour les remplir.</string></property></widget></item>
+               <item>
+                <widget class="QWidget" name="evalContainer" native="true">
+                 <layout class="QVBoxLayout" name="verticalLayout_evalList">
+                  <property name="spacing"><number>14</number></property>
+                  <property name="leftMargin"><number>0</number></property>
+<property name="topMargin"><number>10</number></property>
+<property name="rightMargin"><number>0</number></property>
+<property name="bottomMargin"><number>10</number></property>
+                 </layout>
+                </widget>
+               </item>
+               <item>
+                <layout class="QHBoxLayout" name="horizontalLayout_evalFooter">
+                 <property name="spacing"><number>12</number></property>
+                 <item><widget class="QLabel" name="labelTotalScore"><property name="text"><string>Note globale : 0 / 50</string></property></widget></item>
+                 <item>
+                  <spacer name="horizontalSpacer_evalFooter">
+                   <property name="orientation"><enum>Qt::Horizontal</enum></property>
+                   <property name="sizeHint" stdset="0"><size><width>40</width><height>20</height></size></property>
+                  </spacer>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="btnEvalReset">
+                   <property name="minimumSize"><size><width>140</width><height>44</height></size></property>
+                   <property name="cursor"><cursorShape>PointingHandCursor</cursorShape></property>
+                   <property name="text"><string>Réinitialiser</string></property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="btnEvalSave">
+                   <property name="minimumSize"><size><width>210</width><height>44</height></size></property>
+                   <property name="cursor"><cursorShape>PointingHandCursor</cursorShape></property>
+                   <property name="text"><string>Enregistrer l'évaluation</string></property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+              </layout>
+             </widget>
+            </item>
+
+           </layout>
+          </widget>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
