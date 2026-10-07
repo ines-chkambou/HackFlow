@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry"><rect><x>0</x><y>0</y><width>1100</width><height>620</height></rect></property>
+  <property name="windowTitle"><string>HackFlow</string></property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QVBoxLayout" name="verticalLayoutMain">
+    <property name="spacing"><number>16</number></property>
+    <property name="leftMargin"><number>20</number></property>
+    <property name="topMargin"><number>20</number></property>
+    <property name="rightMargin"><number>20</number></property>
+    <property name="bottomMargin"><number>20</number></property>
+    <item>
+     <widget class="QFrame" name="frameHero">
+      <property name="minimumSize"><size><width>0</width><height>260</height></size></property>
+      <layout class="QHBoxLayout" name="layoutHero">
+       <property name="leftMargin"><number>24</number></property>
+       <property name="rightMargin"><number>24</number></property>
+       <item>
+        <layout class="QVBoxLayout" name="layoutHeroLeft">
+         <property name="spacing"><number>6</number></property>
+         <item>
+          <layout class="QHBoxLayout" name="layoutLogo">
+           <property name="spacing"><number>12</number></property>
+           <item>
+            <widget class="QLabel" name="labelLogoImg">
+             <property name="minimumSize"><size><width>56</width><height>56</height></size></property>
+             <property name="maximumSize"><size><width>56</width><height>56</height></size></property>
+             <property name="text"><string></string></property>
+            </widget>
+           </item>
+           <item>
+            <layout class="QVBoxLayout" name="layoutLogoText">
+             <property name="spacing"><number>2</number></property>
+             <item><widget class="QLabel" name="labelLogo"><property name="text"><string>HackFlow</string></property></widget></item>
+             <item><widget class="QLabel" name="labelTagline"><property name="text"><string>ORGANISEZ · COLLABOREZ · INNOVEZ</string></property></widget></item>
+            </layout>
+           </item>
+           <item>
+            <spacer name="spacerLogo">
+             <property name="orientation"><enum>Qt::Horizontal</enum></property>
+             <property name="sizeHint" stdset="0"><size><width>40</width><height>20</height></size></property>
+            </spacer>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <spacer name="spacerHero1">
+           <property name="orientation"><enum>Qt::Vertical</enum></property>
+           <property name="sizeHint" stdset="0"><size><width>20</width><height>10</height></size></property>
+          </spacer>
+         </item>
+         <item><widget class="QLabel" name="labelWelcome"><property name="text"><string>Bienvenue, Admin !</string></property></widget></item>
+         <item><widget class="QLabel" name="labelSubtitle"><property name="text"><string>Prêt à faire de ce hackathon une expérience inoubliable ?</string></property></widget></item>
+         <item><widget class="QLabel" name="labelDesc"><property name="text"><string>Gérez les participants, les équipes, les projets et suivez l'avancement de votre événement en toute simplicité.</string></property><property name="wordWrap"><bool>true</bool></property></widget></item>
+         <item>
+          <widget class="QPushButton" name="btnDashboard">
+           <property name="minimumSize"><size><width>220</width><height>38</height></size></property>
+           <property name="maximumSize"><size><width>220</width><height>38</height></size></property>
+           <property name="cursor"><cursorShape>PointingHandCursor</cursorShape></property>
+           <property name="text"><string>Découvrir le tableau de bord  →</string></property>
+          </widget>
+         </item>
+         <item>
+          <spacer name="spacerHero2">
+           <property name="orientation"><enum>Qt::Vertical</enum></property>
+           <property name="sizeHint" stdset="0"><size><width>20</width><height>10</height></size></property>
+          </spacer>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <widget class="QLabel" name="labelIllustration">
+         <property name="minimumSize"><size><width>420</width><height>0</height></size></property>
+         <property name="text"><string></string></property>
+         <property name="alignment"><set>Qt::AlignCenter</set></property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </item>
+    <item>
+     <widget class="QLabel" name="labelQuick">
+      <property name="text"><string>Actions rapides</string></property>
+     </widget>
+    </item>
+    <item>
+     <layout class="QHBoxLayout" name="layoutCards">
+      <property name="spacing"><number>16</number></property>
+      <item>
+       <widget class="QFrame" name="cardParticipants">
+        <property name="minimumSize"><size><width>200</width><height>150</height></size></property>
+        <layout class="QVBoxLayout" name="layoutCardParticipants">
+         <item><widget class="QLabel" name="iconParticipants"><property name="text"><string></string></property></widget></item>
+         <item>
+          <spacer name="spacerParticipants">
+           <property name="orientation"><enum>Qt::Vertical</enum></property>
+           <property name="sizeHint" stdset="0"><size><width>20</width><height>10</height></size></property>
+          </spacer>
+         </item>
+         <item><widget class="QLabel" name="titleParticipants"><property name="text"><string>Participants</string></property></widget></item>
+         <item>
+          <layout class="QHBoxLayout" name="rowParticipants">
+           <item><widget class="QLabel" name="descParticipants"><property name="text"><string>Gérez les participants de votre hackathon</string></property><property name="wordWrap"><bool>true</bool></property></widget></item>
+           <item><widget class="QPushButton" name="btnParticipants"><property name="minimumSize"><size><width>36</width><height>36</height></size></property><property name="maximumSize"><size><width>36</width><height>36</height></size></property><property name="cursor"><cursorShape>PointingHandCursor</cursorShape></property><property name="text"><string>→</string></property></widget></item>
+          </layout>
+         </item>
+        </layout>
+       </widget>
+      </item>
+
+      <item>
+       <widget class="QFrame" name="cardProjets">
+        <property name="minimumSize"><size><width>200</width><height>150</height></size></property>
+        <layout class="QVBoxLayout" name="layoutCardProjets">
+         <item><widget class="QLabel" name="iconProjets"><property name="text"><string></string></property></widget></item>
+         <item>
+          <spacer name="spacerProjets">
+           <property name="orientation"><enum>Qt::Vertical</enum></property>
+           <property name="sizeHint" stdset="0"><size><width>20</width><height>10</height></size></property>
+          </spacer>
+         </item>
+         <item><widget class="QLabel" name="titleProjets"><property name="text"><string>Projets</string></property></widget></item>
+         <item>
+          <layout class="QHBoxLayout" name="rowProjets">
+           <item><widget class="QLabel" name="descProjets"><property name="text"><string>Suivez et gérez les projets des équipes</string></property><property name="wordWrap"><bool>true</bool></property></widget></item>
+           <item><widget class="QPushButton" name="btnProjets"><property name="minimumSize"><size><width>36</width><height>36</height></size></property><property name="maximumSize"><size><width>36</width><height>36</height></size></property><property name="cursor"><cursorShape>PointingHandCursor</cursorShape></property><property name="text"><string>→</string></property></widget></item>
+          </layout>
+         </item>
+        </layout>
+       </widget>
+      </item>
+
+      <item>
+       <widget class="QFrame" name="cardEmployes">
+        <property name="minimumSize"><size><width>200</width><height>150</height></size></property>
+        <layout class="QVBoxLayout" name="layoutCardEmployes">
+         <item><widget class="QLabel" name="iconEmployes"><property name="text"><string></string></property></widget></item>
+         <item>
+          <spacer name="spacerEmployes">
+           <property name="orientation"><enum>Qt::Vertical</enum></property>
+           <property name="sizeHint" stdset="0"><size><width>20</width><height>10</height></size></property>
+          </spacer>
+         </item>
+         <item><widget class="QLabel" name="titleEmployes"><property name="text"><string>Employés</string></property></widget></item>
+         <item>
+          <layout class="QHBoxLayout" name="rowEmployes">
+           <item><widget class="QLabel" name="descEmployes"><property name="text"><string>Gérez les membres de votre organisation</string></property><property name="wordWrap"><bool>true</bool></property></widget></item>
+           <item><widget class="QPushButton" name="btnEmployes"><property name="minimumSize"><size><width>36</width><height>36</height></size></property><property name="maximumSize"><size><width>36</width><height>36</height></size></property><property name="cursor"><cursorShape>PointingHandCursor</cursorShape></property><property name="text"><string>→</string></property></widget></item>
+          </layout>
+         </item>
+        </layout>
+       </widget>
+      </item>
+
+      <item>
+       <widget class="QFrame" name="cardJury">
+        <property name="minimumSize"><size><width>200</width><height>150</height></size></property>
+        <layout class="QVBoxLayout" name="layoutCardJury">
+         <item><widget class="QLabel" name="iconJury"><property name="text"><string></string></property></widget></item>
+         <item>
+          <spacer name="spacerJury">
+           <property name="orientation"><enum>Qt::Vertical</enum></property>
+           <property name="sizeHint" stdset="0"><size><width>20</width><height>10</height></size></property>
+          </spacer>
+         </item>
+         <item><widget class="QLabel" name="titleJury"><property name="text"><string>Jury</string></property></widget></item>
+         <item>
+          <layout class="QHBoxLayout" name="rowJury">
+           <item><widget class="QLabel" name="descJury"><property name="text"><string>Gérez les membres du jury</string></property><property name="wordWrap"><bool>true</bool></property></widget></item>
+           <item><widget class="QPushButton" name="btnJury"><property name="minimumSize"><size><width>36</width><height>36</height></size></property><property name="maximumSize"><size><width>36</width><height>36</height></size></property><property name="cursor"><cursorShape>PointingHandCursor</cursorShape></property><property name="text"><string>→</string></property></widget></item>
+          </layout>
+         </item>
+        </layout>
+       </widget>
+      </item>
+
+     </layout>
+    </item>
+    <item>
+     <spacer name="spacerBottom">
+      <property name="orientation"><enum>Qt::Vertical</enum></property>
+      <property name="sizeHint" stdset="0"><size><width>20</width><height>0</height></size></property>
+     </spacer>
+    </item>
+   </layout>
+  </widget>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

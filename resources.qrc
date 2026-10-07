@@ -1,0 +1,11 @@
+<RCC>
+    <qresource prefix="/">
+        <file>images/logo.png</file>
+        <file>images/hero.png</file>
+        <file>images/zap.png</file>
+        <file>images/icon_participants.png</file>
+        <file>images/icon_projets.png</file>
+        <file>images/icon_employes.png</file>
+        <file>images/icon_jury.png</file>
+    </qresource>
+</RCC>
