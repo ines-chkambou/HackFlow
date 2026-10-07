@@ -10,8 +10,10 @@
 #include <QColor>
 
 class QCheckBox;
+class QPushButton;
 class QStandardItemModel;
 class ParticipantsController;   // module Participants (participantscontroller.h)
+class JuryController;           // module Jury (jurycontroller.h)
 namespace Ui { class MainWindow; }
 
 // ===========================================================================
@@ -84,7 +86,9 @@ private:
 // ===========================================================================
 // Phase "interface graphique" (un seul fichier .ui, vues = pages de QStackedWidget) :
 //  - seuls les boutons de NAVIGATION fonctionnent :
-//      "Se connecter"            : Connexion  -> application (Tableau de bord)
+//      "Se connecter"            : Connexion  -> menu d'accueil (ecran seul, sans barre laterale)
+//      cartes du menu            : menu       -> application, ouverte sur le module choisi
+//      "Accueil" (menu de gauche): application -> menu d'accueil
 //      menu de gauche            : change de page dans "stackedPages"
 //      "Deconnexion"             : application -> Connexion
 //  - tous les boutons d'ACTION (Ajouter, Vider, Trier, Exporter, modifier, supprimer,
@@ -101,11 +105,16 @@ private:
     Ui::MainWindow *ui;
     QCheckBox *m_headCheck = nullptr;
     ParticipantsController *m_participants = nullptr;   // logique de la page Participants
+    JuryController *m_jury = nullptr;                   // logique de la page Jury
+    bool m_expanded = false;                            // fenetre deja agrandie (menu ou application)
 
     void setupNavigation();     // boutons de navigation -> pages des QStackedWidget
     void showConnexion();       // page Connexion (fenetre 960 x 640)
-    void showApplication();     // application (menu + pages), fenetre agrandie
+    void showMenu();            // menu d'accueil SEUL (sans barre laterale), juste apres la connexion
+    void showApplication(QPushButton *nav);  // application (barre laterale + pages) ouverte sur le module "nav"
+    void expandWindow();        // fenetre agrandie et centree (une seule fois apres la connexion)
     void setupDecor();          // donnees d'exemple affichees (tableau, graphiques)
+    void setupMenu();           // menu d'accueil (banniere + cartes) : ecran a part entiere (pageMenu)
     void positionHeaderCheck(); // placement de la case de l'en-tete (affichage uniquement)
 };
 

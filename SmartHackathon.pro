@@ -7,11 +7,14 @@ TEMPLATE  = app
 SOURCES += \
     main.cpp \
     mainwindow.cpp \
-    participantscontroller.cpp
+    participantscontroller.cpp \
+    jurycontroller.cpp
 
 HEADERS += \
     mainwindow.h \
-    participantscontroller.h
+    participantscontroller.h \
+    jurycontroller.h \
+    scrollhelpers.h
 
 FORMS += \
     mainwindow.ui
@@ -25,3 +28,6 @@ qtHaveModule(pdf) {
     QT += pdf
     DEFINES += HAVE_QTPDF
 }
+
+# MSVC : lire les fichiers sources en UTF-8 (accents)
+msvc: QMAKE_CXXFLAGS += /utf-8

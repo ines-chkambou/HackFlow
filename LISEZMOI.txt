@@ -11,8 +11,9 @@ CONVENTIONS DU DOCUMENT "BONNES PRATIQUES"
       stackedPages : Accueil, Participants, Equipes, Projets, Mentors, Employes,
                      Equipements, Jury, Parametres
 
-PARCOURS (document Word : Connexion -> Tableau de bord -> modules)
-  Connexion --[Se connecter]--> Tableau de bord --[menu de gauche]--> chaque module
+PARCOURS (document Word : Connexion -> Menu d'accueil -> modules)
+  Connexion --[Se connecter]--> Menu d'accueil (ecran seul) --[cartes]--> application (barre laterale) --> chaque module
+  application --[Accueil]--> Menu d'accueil      application --[Deconnexion]--> Connexion
   application --[Deconnexion]--> Connexion
 
 SEULS LES BOUTONS DE NAVIGATION FONCTIONNENT (+ la page Participants, voir plus bas)
@@ -43,3 +44,40 @@ INTEGRATION DU MODULE PARTICIPANTS (projet "le5er")
   - Qt PDF (facultatif) : si le module est installe, SmartHackathon.pro l'active tout seul (HAVE_QTPDF).
   - Donnees : participants.json et notifications.json dans le dossier AppData de l'application
     (nom d'application "HackFlow", donc different de l'ancien "Participants").
+
+INTEGRATION DU MENU D'ACCUEIL (projet "menu")
+  - Le menu (banniere "Bienvenue, Admin !" + 4 cartes Participants / Projets / Employes / Jury) est un
+    ECRAN A PART ENTIERE : page "pageMenu" de stackedMain (stackedMain : 0 = Connexion, 1 = Menu,
+    2 = application). Comme la Connexion, il s'ouvre SEUL, sans barre laterale, juste apres "Se connecter".
+  - Les cartes ouvrent l'application (barre laterale + pages) directement sur le module choisi.
+    Le bouton "Accueil" du menu de gauche ramene au menu d'accueil ; "Deconnexion" ramene a la Connexion.
+  - La page "Accueil" (Tableau de bord) de stackedPages a retrouve son contenu d'origine (placeholder) :
+    elle n'est plus ouverte par le menu de gauche (le bouton Accueil ouvre le menu d'accueil).
+  - Les widgets sont dans mainwindow.ui (conteneur widgetMenuAccueil dans pageMenu, UN SEUL fichier .ui
+    conserve). Trois noms deja pris par la barre laterale ont recu le suffixe "Menu" :
+    layoutLogoMenu, labelLogoMenu, labelTaglineMenu.
+  - La logique est dans MainWindow : setupMenu() (images, style, boutons des cartes), showMenu(),
+    showApplication(bouton du menu de gauche) et expandWindow() (fenetre agrandie une seule fois apres la
+    connexion : passer du menu a l'application ne change plus sa taille).
+  - Images du menu : dossier images/ (prefixe de ressources ":/images/"), declare dans resources.qrc.
+  - Le nom affiche dans "Bienvenue, ..." est repris de la carte utilisateur de la barre laterale (labelAdminName).
+  - Le dossier module-employes/ de l'archive "menu" n'a pas ete repris : HackFlow contient deja la page Employes.
+
+INTEGRATION DU MODULE JURY (projet "HackFlow_Jury")
+  - Les widgets sont dans mainwindow.ui, page "pageJury" (UN SEUL fichier .ui conserve) : une zone
+    defilante (scrollAreaJury) avec la liste des membres du jury, puis la fiche d'evaluation.
+    Le titre de page de HackFlow est conserve ; l'en-tete "Jury" du projet d'origine (doublon) est retire.
+    Noms deja pris par d'autres pages, suffixes en "Jury" : btnPrevJury, btnNextJury, labelCountJury
+    (et btnPageJury pour les boutons de pagination crees par le code).
+  - La logique est dans jurycontroller.h / .cpp (classe JuryController, creee dans le constructeur de
+    MainWindow, comme ParticipantsController) : recherche, ajout, modification directe des cellules,
+    suppression, tri, pagination (5 par page), export CSV, fiche d'evaluation (5 criteres notes de 0 a 10,
+    note globale, enregistrement / reinitialisation).
+  - scrollhelpers.h (defilement fluide de la molette) est repris tel quel.
+  - Le style du module est applique uniquement a pageJury (le reste de l'application est inchange) ;
+    les boites de dialogue du module sont rattachees a cette page pour en heriter.
+  - Icones : images/icons/ (prefixe de ressources ":/images/icons/"), 8 icones utilisees par le module.
+  - La barre laterale, le logo et la navigation du projet Jury ne sont pas repris : ce sont ceux de HackFlow.
+  - Donnees : exemples en memoire (12 membres), comme dans le projet d'origine ; aucune sauvegarde sur disque.
+  - Acces : carte "Jury" du menu d'accueil, ou menu de gauche > Jury.
+

@@ -77,6 +77,21 @@
         <file>icons/user_w.png</file>
         <file>icons/userplus_w.png</file>
         <file>icons/users_c.png</file>
+        <file>images/hero.png</file>
+        <file>images/icon_employes.png</file>
+        <file>images/icon_jury.png</file>
+        <file>images/icon_participants.png</file>
+        <file>images/icon_projets.png</file>
+        <file>images/logo.png</file>
+        <file>images/zap.png</file>
+        <file>images/icons/arrow-up-down.png</file>
+        <file>images/icons/chevron-down-small.png</file>
+        <file>images/icons/chevron-left.png</file>
+        <file>images/icons/chevron-right.png</file>
+        <file>images/icons/download.png</file>
+        <file>images/icons/pencil.png</file>
+        <file>images/icons/search.png</file>
+        <file>images/icons/trash-2.png</file>
         <file>img/login_illustration.png</file>
         <file>img/login_logo.png</file>
         <file>img/logo_full.png</file>

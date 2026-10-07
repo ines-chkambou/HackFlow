@@ -2,7 +2,7 @@
 <ui version="4.0">
  <class>MainWindow</class>
  <widget class="QMainWindow" name="MainWindow">
-  <property name="geometry"><rect><x>0</x><y>0</y><width>960</width><height>720</height></rect></property>
+  <property name="geometry"><rect><x>0</x><y>0</y><width>960</width><height>640</height></rect></property>
   <property name="windowTitle"><string>HackFlow - Smart Hackathon Management</string></property>
   <widget class="QWidget" name="centralwidget"><layout class="QVBoxLayout" name="layoutCentralMain"><property name="leftMargin"><number>0</number></property><property name="topMargin"><number>0</number></property><property name="rightMargin"><number>0</number></property><property name="bottomMargin"><number>0</number></property><property name="spacing"><number>0</number></property><item><widget class="QStackedWidget" name="stackedMain"><property name="currentIndex"><number>0</number></property><widget class="QWidget" name="pageConnexion"><property name="styleSheet"><string notr="true">QWidget#pageConnexion { background-color: #000F29; }
 
@@ -204,7 +204,174 @@ en réalité.</string></property>
      </layout>
     </widget>
    </item>
-  </layout></widget><widget class="QWidget" name="pageApp"><property name="styleSheet"><string notr="true">QWidget#pageApp, QWidget#widgetMain { background-color: #101B31; }
+  </layout></widget><widget class="QWidget" name="pageMenu"><layout class="QVBoxLayout" name="layoutPageMenu"><property name="leftMargin"><number>20</number></property><property name="topMargin"><number>20</number></property><property name="rightMargin"><number>20</number></property><property name="bottomMargin"><number>20</number></property><property name="spacing"><number>0</number></property>
+<item><widget class="QWidget" name="widgetMenuAccueil"><layout class="QVBoxLayout" name="verticalLayoutMenu"><property name="leftMargin"><number>0</number></property><property name="topMargin"><number>0</number></property><property name="rightMargin"><number>0</number></property><property name="bottomMargin"><number>0</number></property><property name="spacing"><number>16</number></property>
+    <item>
+     <widget class="QFrame" name="frameHero">
+      <property name="minimumSize"><size><width>0</width><height>260</height></size></property>
+      <layout class="QHBoxLayout" name="layoutHero">
+       <property name="leftMargin"><number>24</number></property>
+       <property name="rightMargin"><number>24</number></property>
+       <item>
+        <layout class="QVBoxLayout" name="layoutHeroLeft">
+         <property name="spacing"><number>6</number></property>
+         <item>
+          <layout class="QHBoxLayout" name="layoutLogoMenu">
+           <property name="spacing"><number>12</number></property>
+           <item>
+            <widget class="QLabel" name="labelLogoImg">
+             <property name="minimumSize"><size><width>56</width><height>56</height></size></property>
+             <property name="maximumSize"><size><width>56</width><height>56</height></size></property>
+             <property name="text"><string></string></property>
+            </widget>
+           </item>
+           <item>
+            <layout class="QVBoxLayout" name="layoutLogoText">
+             <property name="spacing"><number>2</number></property>
+             <item><widget class="QLabel" name="labelLogoMenu"><property name="text"><string>HackFlow</string></property></widget></item>
+             <item><widget class="QLabel" name="labelTaglineMenu"><property name="text"><string>ORGANISEZ · COLLABOREZ · INNOVEZ</string></property></widget></item>
+            </layout>
+           </item>
+           <item>
+            <spacer name="spacerLogo">
+             <property name="orientation"><enum>Qt::Horizontal</enum></property>
+             <property name="sizeHint" stdset="0"><size><width>40</width><height>20</height></size></property>
+            </spacer>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <spacer name="spacerHero1">
+           <property name="orientation"><enum>Qt::Vertical</enum></property>
+           <property name="sizeHint" stdset="0"><size><width>20</width><height>10</height></size></property>
+          </spacer>
+         </item>
+         <item><widget class="QLabel" name="labelWelcome"><property name="text"><string>Bienvenue, Admin !</string></property></widget></item>
+         <item><widget class="QLabel" name="labelSubtitle"><property name="text"><string>Prêt à faire de ce hackathon une expérience inoubliable ?</string></property></widget></item>
+         <item><widget class="QLabel" name="labelDesc"><property name="text"><string>Gérez les participants, les équipes, les projets et suivez l'avancement de votre événement en toute simplicité.</string></property><property name="wordWrap"><bool>true</bool></property></widget></item>
+         <item>
+          <spacer name="spacerHero2">
+           <property name="orientation"><enum>Qt::Vertical</enum></property>
+           <property name="sizeHint" stdset="0"><size><width>20</width><height>10</height></size></property>
+          </spacer>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <widget class="QLabel" name="labelIllustration">
+         <property name="minimumSize"><size><width>420</width><height>0</height></size></property>
+         <property name="text"><string></string></property>
+         <property name="alignment"><set>Qt::AlignCenter</set></property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </item>
+    <item>
+     <widget class="QLabel" name="labelQuick">
+      <property name="text"><string>Actions rapides</string></property>
+     </widget>
+    </item>
+    <item>
+     <layout class="QHBoxLayout" name="layoutCards">
+      <property name="spacing"><number>16</number></property>
+      <item>
+       <widget class="QFrame" name="cardParticipants">
+        <property name="minimumSize"><size><width>200</width><height>150</height></size></property>
+        <layout class="QVBoxLayout" name="layoutCardParticipants">
+         <item><widget class="QLabel" name="iconParticipants"><property name="text"><string></string></property></widget></item>
+         <item>
+          <spacer name="spacerParticipants">
+           <property name="orientation"><enum>Qt::Vertical</enum></property>
+           <property name="sizeHint" stdset="0"><size><width>20</width><height>10</height></size></property>
+          </spacer>
+         </item>
+         <item><widget class="QLabel" name="titleParticipants"><property name="text"><string>Participants</string></property></widget></item>
+         <item>
+          <layout class="QHBoxLayout" name="rowParticipants">
+           <item><widget class="QLabel" name="descParticipants"><property name="text"><string>Gérez les participants de votre hackathon</string></property><property name="wordWrap"><bool>true</bool></property></widget></item>
+           <item><widget class="QPushButton" name="btnParticipants"><property name="minimumSize"><size><width>36</width><height>36</height></size></property><property name="maximumSize"><size><width>36</width><height>36</height></size></property><property name="cursor"><cursorShape>PointingHandCursor</cursorShape></property><property name="text"><string>→</string></property></widget></item>
+          </layout>
+         </item>
+        </layout>
+       </widget>
+      </item>
+
+      <item>
+       <widget class="QFrame" name="cardProjets">
+        <property name="minimumSize"><size><width>200</width><height>150</height></size></property>
+        <layout class="QVBoxLayout" name="layoutCardProjets">
+         <item><widget class="QLabel" name="iconProjets"><property name="text"><string></string></property></widget></item>
+         <item>
+          <spacer name="spacerProjets">
+           <property name="orientation"><enum>Qt::Vertical</enum></property>
+           <property name="sizeHint" stdset="0"><size><width>20</width><height>10</height></size></property>
+          </spacer>
+         </item>
+         <item><widget class="QLabel" name="titleProjets"><property name="text"><string>Projets</string></property></widget></item>
+         <item>
+          <layout class="QHBoxLayout" name="rowProjets">
+           <item><widget class="QLabel" name="descProjets"><property name="text"><string>Suivez et gérez les projets des équipes</string></property><property name="wordWrap"><bool>true</bool></property></widget></item>
+           <item><widget class="QPushButton" name="btnProjets"><property name="minimumSize"><size><width>36</width><height>36</height></size></property><property name="maximumSize"><size><width>36</width><height>36</height></size></property><property name="cursor"><cursorShape>PointingHandCursor</cursorShape></property><property name="text"><string>→</string></property></widget></item>
+          </layout>
+         </item>
+        </layout>
+       </widget>
+      </item>
+
+      <item>
+       <widget class="QFrame" name="cardEmployes">
+        <property name="minimumSize"><size><width>200</width><height>150</height></size></property>
+        <layout class="QVBoxLayout" name="layoutCardEmployes">
+         <item><widget class="QLabel" name="iconEmployes"><property name="text"><string></string></property></widget></item>
+         <item>
+          <spacer name="spacerEmployes">
+           <property name="orientation"><enum>Qt::Vertical</enum></property>
+           <property name="sizeHint" stdset="0"><size><width>20</width><height>10</height></size></property>
+          </spacer>
+         </item>
+         <item><widget class="QLabel" name="titleEmployes"><property name="text"><string>Employés</string></property></widget></item>
+         <item>
+          <layout class="QHBoxLayout" name="rowEmployes">
+           <item><widget class="QLabel" name="descEmployes"><property name="text"><string>Gérez les membres de votre organisation</string></property><property name="wordWrap"><bool>true</bool></property></widget></item>
+           <item><widget class="QPushButton" name="btnEmployes"><property name="minimumSize"><size><width>36</width><height>36</height></size></property><property name="maximumSize"><size><width>36</width><height>36</height></size></property><property name="cursor"><cursorShape>PointingHandCursor</cursorShape></property><property name="text"><string>→</string></property></widget></item>
+          </layout>
+         </item>
+        </layout>
+       </widget>
+      </item>
+
+      <item>
+       <widget class="QFrame" name="cardJury">
+        <property name="minimumSize"><size><width>200</width><height>150</height></size></property>
+        <layout class="QVBoxLayout" name="layoutCardJury">
+         <item><widget class="QLabel" name="iconJury"><property name="text"><string></string></property></widget></item>
+         <item>
+          <spacer name="spacerJury">
+           <property name="orientation"><enum>Qt::Vertical</enum></property>
+           <property name="sizeHint" stdset="0"><size><width>20</width><height>10</height></size></property>
+          </spacer>
+         </item>
+         <item><widget class="QLabel" name="titleJury"><property name="text"><string>Jury</string></property></widget></item>
+         <item>
+          <layout class="QHBoxLayout" name="rowJury">
+           <item><widget class="QLabel" name="descJury"><property name="text"><string>Gérez les membres du jury</string></property><property name="wordWrap"><bool>true</bool></property></widget></item>
+           <item><widget class="QPushButton" name="btnJury"><property name="minimumSize"><size><width>36</width><height>36</height></size></property><property name="maximumSize"><size><width>36</width><height>36</height></size></property><property name="cursor"><cursorShape>PointingHandCursor</cursorShape></property><property name="text"><string>→</string></property></widget></item>
+          </layout>
+         </item>
+        </layout>
+       </widget>
+      </item>
+
+     </layout>
+    </item>
+    <item>
+     <spacer name="spacerBottom">
+      <property name="orientation"><enum>Qt::Vertical</enum></property>
+      <property name="sizeHint" stdset="0"><size><width>20</width><height>0</height></size></property>
+     </spacer>
+    </item>
+</layout></widget></item></layout></widget><widget class="QWidget" name="pageApp"><property name="styleSheet"><string notr="true">QWidget#pageApp, QWidget#widgetMain { background-color: #101B31; }
 QWidget { color: #FFFFFF; font-family: Calibri; font-size: 10pt; }
 QLabel { background: transparent; }
 
@@ -302,8 +469,216 @@ Elle sera intégrée ici dans le QStackedWidget. La navigation fonctionne : util
 Elle sera intégrée ici dans le QStackedWidget. La navigation fonctionne : utilisez le menu de gauche.</string></property><property name="phText" stdset="0"><bool>true</bool></property><property name="alignment"><set>Qt::AlignCenter</set></property></widget></item><item><spacer name="spPhBEquipes"><property name="orientation"><enum>Qt::Vertical</enum></property><property name="sizeHint" stdset="0"><size><width>20</width><height>40</height></size></property></spacer></item></layout></widget></item></layout></widget><widget class="QWidget" name="pageProjets"><layout class="QVBoxLayout" name="layoutPageProjets"><property name="leftMargin"><number>0</number></property><property name="topMargin"><number>0</number></property><property name="rightMargin"><number>0</number></property><property name="bottomMargin"><number>0</number></property><property name="spacing"><number>12</number></property><item><layout class="QHBoxLayout" name="layoutTitleProjets"><property name="spacing"><number>12</number></property><item><widget class="QLabel" name="labelTitleIconProjets"><property name="pixmap"><pixmap resource="resources.qrc">:/icons/ti_folder.png</pixmap></property><property name="scaledContents"><bool>true</bool></property><property name="minimumSize"><size><width>50</width><height>50</height></size></property><property name="maximumSize"><size><width>50</width><height>50</height></size></property></widget></item><item><layout class="QVBoxLayout" name="layoutTitleTxtProjets"><property name="spacing"><number>0</number></property><item><widget class="QLabel" name="labelTitleProjets"><property name="text"><string>Gestion des &lt;span style=&quot;color:#0BF8F6;&quot;&gt;Projets&lt;/span&gt;</string></property><property name="textFormat"><enum>Qt::RichText</enum></property><property name="pageTitle" stdset="0"><bool>true</bool></property></widget></item><item><widget class="QLabel" name="labelSubtitleProjets"><property name="text"><string>Suivez les projets, leur statut et leurs échéances.</string></property><property name="pageSub" stdset="0"><bool>true</bool></property></widget></item></layout></item><item><spacer name="spTitleProjets"><property name="orientation"><enum>Qt::Horizontal</enum></property><property name="sizeHint" stdset="0"><size><width>40</width><height>10</height></size></property></spacer></item><item><widget class="QLabel" name="labelHomeIconProjets"><property name="pixmap"><pixmap resource="resources.qrc">:/icons/home_c.png</pixmap></property><property name="scaledContents"><bool>true</bool></property><property name="minimumSize"><size><width>16</width><height>16</height></size></property><property name="maximumSize"><size><width>16</width><height>16</height></size></property></widget></item><item><widget class="QLabel" name="labelBreadcrumbProjets"><property name="text"><string>›  SmartHackathon Management  ›  Gestion des Projets  ›  Module 5</string></property><property name="pageSub" stdset="0"><bool>true</bool></property></widget></item></layout></item><item><widget class="QFrame" name="framePlaceholderProjets"><property name="card" stdset="0"><bool>true</bool></property><layout class="QVBoxLayout" name="layoutPhProjets"><property name="leftMargin"><number>30</number></property><property name="topMargin"><number>30</number></property><property name="rightMargin"><number>30</number></property><property name="bottomMargin"><number>30</number></property><property name="spacing"><number>12</number></property><item><spacer name="spPhTProjets"><property name="orientation"><enum>Qt::Vertical</enum></property><property name="sizeHint" stdset="0"><size><width>20</width><height>40</height></size></property></spacer></item><item alignment="Qt::AlignHCenter"><widget class="QLabel" name="labelPhIconProjets"><property name="pixmap"><pixmap resource="resources.qrc">:/icons/ti_folder.png</pixmap></property><property name="scaledContents"><bool>true</bool></property><property name="minimumSize"><size><width>84</width><height>84</height></size></property><property name="maximumSize"><size><width>84</width><height>84</height></size></property></widget></item><item><widget class="QLabel" name="labelPhTitleProjets"><property name="text"><string>Interface « Projets »</string></property><property name="phTitle" stdset="0"><bool>true</bool></property><property name="alignment"><set>Qt::AlignCenter</set></property></widget></item><item><widget class="QLabel" name="labelPhTextProjets"><property name="text"><string>Cette interface est réalisée par le membre de l'équipe responsable de ce module.
 Elle sera intégrée ici dans le QStackedWidget. La navigation fonctionne : utilisez le menu de gauche.</string></property><property name="phText" stdset="0"><bool>true</bool></property><property name="alignment"><set>Qt::AlignCenter</set></property></widget></item><item><spacer name="spPhBProjets"><property name="orientation"><enum>Qt::Vertical</enum></property><property name="sizeHint" stdset="0"><size><width>20</width><height>40</height></size></property></spacer></item></layout></widget></item></layout></widget><widget class="QWidget" name="pageMentors"><layout class="QVBoxLayout" name="layoutPageMentors"><property name="leftMargin"><number>0</number></property><property name="topMargin"><number>0</number></property><property name="rightMargin"><number>0</number></property><property name="bottomMargin"><number>0</number></property><property name="spacing"><number>12</number></property><item><layout class="QHBoxLayout" name="layoutTitleMentors"><property name="spacing"><number>12</number></property><item><widget class="QLabel" name="labelTitleIconMentors"><property name="pixmap"><pixmap resource="resources.qrc">:/icons/ti_shield.png</pixmap></property><property name="scaledContents"><bool>true</bool></property><property name="minimumSize"><size><width>50</width><height>50</height></size></property><property name="maximumSize"><size><width>50</width><height>50</height></size></property></widget></item><item><layout class="QVBoxLayout" name="layoutTitleTxtMentors"><property name="spacing"><number>0</number></property><item><widget class="QLabel" name="labelTitleMentors"><property name="text"><string>Gestion des &lt;span style=&quot;color:#0BF8F6;&quot;&gt;Mentors&lt;/span&gt;</string></property><property name="textFormat"><enum>Qt::RichText</enum></property><property name="pageTitle" stdset="0"><bool>true</bool></property></widget></item><item><widget class="QLabel" name="labelSubtitleMentors"><property name="text"><string>Gérez les mentors et leurs affectations aux équipes.</string></property><property name="pageSub" stdset="0"><bool>true</bool></property></widget></item></layout></item><item><spacer name="spTitleMentors"><property name="orientation"><enum>Qt::Horizontal</enum></property><property name="sizeHint" stdset="0"><size><width>40</width><height>10</height></size></property></spacer></item><item><widget class="QLabel" name="labelHomeIconMentors"><property name="pixmap"><pixmap resource="resources.qrc">:/icons/home_c.png</pixmap></property><property name="scaledContents"><bool>true</bool></property><property name="minimumSize"><size><width>16</width><height>16</height></size></property><property name="maximumSize"><size><width>16</width><height>16</height></size></property></widget></item><item><widget class="QLabel" name="labelBreadcrumbMentors"><property name="text"><string>›  SmartHackathon Management  ›  Gestion des Mentors  ›  Module 3</string></property><property name="pageSub" stdset="0"><bool>true</bool></property></widget></item></layout></item><item><widget class="QFrame" name="framePlaceholderMentors"><property name="card" stdset="0"><bool>true</bool></property><layout class="QVBoxLayout" name="layoutPhMentors"><property name="leftMargin"><number>30</number></property><property name="topMargin"><number>30</number></property><property name="rightMargin"><number>30</number></property><property name="bottomMargin"><number>30</number></property><property name="spacing"><number>12</number></property><item><spacer name="spPhTMentors"><property name="orientation"><enum>Qt::Vertical</enum></property><property name="sizeHint" stdset="0"><size><width>20</width><height>40</height></size></property></spacer></item><item alignment="Qt::AlignHCenter"><widget class="QLabel" name="labelPhIconMentors"><property name="pixmap"><pixmap resource="resources.qrc">:/icons/ti_shield.png</pixmap></property><property name="scaledContents"><bool>true</bool></property><property name="minimumSize"><size><width>84</width><height>84</height></size></property><property name="maximumSize"><size><width>84</width><height>84</height></size></property></widget></item><item><widget class="QLabel" name="labelPhTitleMentors"><property name="text"><string>Interface « Mentors »</string></property><property name="phTitle" stdset="0"><bool>true</bool></property><property name="alignment"><set>Qt::AlignCenter</set></property></widget></item><item><widget class="QLabel" name="labelPhTextMentors"><property name="text"><string>Cette interface est réalisée par le membre de l'équipe responsable de ce module.
 Elle sera intégrée ici dans le QStackedWidget. La navigation fonctionne : utilisez le menu de gauche.</string></property><property name="phText" stdset="0"><bool>true</bool></property><property name="alignment"><set>Qt::AlignCenter</set></property></widget></item><item><spacer name="spPhBMentors"><property name="orientation"><enum>Qt::Vertical</enum></property><property name="sizeHint" stdset="0"><size><width>20</width><height>40</height></size></property></spacer></item></layout></widget></item></layout></widget><widget class="QWidget" name="pageEmployes"><layout class="QVBoxLayout" name="layoutPageEmployes"><property name="leftMargin"><number>0</number></property><property name="topMargin"><number>0</number></property><property name="rightMargin"><number>0</number></property><property name="bottomMargin"><number>0</number></property><property name="spacing"><number>12</number></property><item><layout class="QHBoxLayout" name="layoutTitleEmployes"><property name="spacing"><number>12</number></property><item><widget class="QLabel" name="labelTitleIconEmployes"><property name="pixmap"><pixmap resource="resources.qrc">:/icons/ti_users.png</pixmap></property><property name="scaledContents"><bool>true</bool></property><property name="minimumSize"><size><width>50</width><height>50</height></size></property><property name="maximumSize"><size><width>50</width><height>50</height></size></property></widget></item><item><layout class="QVBoxLayout" name="layoutTitleTxtEmployes"><property name="spacing"><number>0</number></property><item><widget class="QLabel" name="labelTitleEmployes"><property name="text"><string>Gestion des &lt;span style=&quot;color:#0BF8F6;&quot;&gt;Employés&lt;/span&gt;</string></property><property name="textFormat"><enum>Qt::RichText</enum></property><property name="pageTitle" stdset="0"><bool>true</bool></property></widget></item><item><widget class="QLabel" name="labelSubtitleEmployes"><property name="text"><string>Gérez les employés, leurs informations et leurs rôles au sein de l'organisation.</string></property><property name="pageSub" stdset="0"><bool>true</bool></property></widget></item></layout></item><item><spacer name="spTitleEmployes"><property name="orientation"><enum>Qt::Horizontal</enum></property><property name="sizeHint" stdset="0"><size><width>40</width><height>10</height></size></property></spacer></item><item><widget class="QLabel" name="labelHomeIconEmployes"><property name="pixmap"><pixmap resource="resources.qrc">:/icons/home_c.png</pixmap></property><property name="scaledContents"><bool>true</bool></property><property name="minimumSize"><size><width>16</width><height>16</height></size></property><property name="maximumSize"><size><width>16</width><height>16</height></size></property></widget></item><item><widget class="QLabel" name="labelBreadcrumbEmployes"><property name="text"><string>›  SmartHackathon Management  ›  Gestion des Employés  ›  Module 3</string></property><property name="pageSub" stdset="0"><bool>true</bool></property></widget></item></layout></item><item><layout class="QHBoxLayout" name="layoutBody"><property name="spacing"><number>14</number></property><item><widget class="QFrame" name="frameForm"><property name="minimumSize"><size><width>310</width><height>0</height></size></property><property name="maximumSize"><size><width>310</width><height>16777215</height></size></property><layout class="QVBoxLayout" name="layoutForm"><property name="leftMargin"><number>16</number></property><property name="topMargin"><number>14</number></property><property name="rightMargin"><number>16</number></property><property name="bottomMargin"><number>14</number></property><property name="spacing"><number>3</number></property><item><layout class="QHBoxLayout" name="layoutFormHead"><property name="spacing"><number>8</number></property><item><widget class="QLabel" name="labelPlus"><property name="pixmap"><pixmap resource="resources.qrc">:/icons/plus_circle.png</pixmap></property><property name="scaledContents"><bool>true</bool></property><property name="minimumSize"><size><width>28</width><height>28</height></size></property><property name="maximumSize"><size><width>28</width><height>28</height></size></property></widget></item><item><widget class="QLabel" name="labelFormTitle"><property name="text"><string>Ajouter un &lt;span style=&quot;color:#7C4DFF;&quot;&gt;nouvel employé&lt;/span&gt;</string></property><property name="textFormat"><enum>Qt::RichText</enum></property></widget></item><item><spacer name="spFH"><property name="orientation"><enum>Qt::Horizontal</enum></property><property name="sizeHint" stdset="0"><size><width>10</width><height>10</height></size></property></spacer></item></layout></item><item><widget class="QLabel" name="lblLineId"><property name="text"><string>ID *</string></property></widget></item><item><widget class="QLineEdit" name="lineId"><property name="text"><string>Généré automatiquement</string></property><property name="enabled"><bool>false</bool></property></widget></item><item><widget class="QLabel" name="lblLineNom"><property name="text"><string>Nom *</string></property></widget></item><item><widget class="QLineEdit" name="lineNom"><property name="placeholderText"><string>Nom de l'employé</string></property></widget></item><item><widget class="QLabel" name="lblLinePrenom"><property name="text"><string>Prénom *</string></property></widget></item><item><widget class="QLineEdit" name="linePrenom"><property name="placeholderText"><string>Prénom de l'employé</string></property></widget></item><item><widget class="QLabel" name="lblLineEmail"><property name="text"><string>Email *</string></property></widget></item><item><widget class="QLineEdit" name="lineEmail"><property name="placeholderText"><string>exemple@email.com</string></property></widget></item><item><widget class="QLabel" name="lblComboRole"><property name="text"><string>Poste / Rôle *</string></property></widget></item><item><widget class="QComboBox" name="comboRole"><item><property name="text"><string>Organisateur</string></property></item><item><property name="text"><string>Technicien</string></property></item><item><property name="text"><string>Mentor</string></property></item></widget></item><item><widget class="QLabel" name="lblComboDept"><property name="text"><string>Département *</string></property></widget></item><item><widget class="QComboBox" name="comboDept"><item><property name="text"><string>Logistique</string></property></item><item><property name="text"><string>Technique</string></property></item><item><property name="text"><string>Pédagogie/Mentorat</string></property></item></widget></item><item><widget class="QLabel" name="lblComboEquipes"><property name="text"><string>Équipe(s)</string></property></widget></item><item><widget class="CheckComboBox" name="comboEquipes"></widget></item><item><widget class="QLabel" name="lblComboDispo"><property name="text"><string>Disponibilité *</string></property></widget></item><item><widget class="QComboBox" name="comboDispo"><item><property name="text"><string>Disponible</string></property></item><item><property name="text"><string>Indisponible</string></property></item></widget></item><item><spacer name="spF1"><property name="orientation"><enum>Qt::Vertical</enum></property><property name="sizeHint" stdset="0"><size><width>10</width><height>6</height></size></property></spacer></item><item><layout class="QHBoxLayout" name="layoutFormBtn"><property name="spacing"><number>10</number></property><item><widget class="QPushButton" name="btnAjouter"><property name="text"><string>  Ajouter</string></property><property name="icon"><iconset resource="resources.qrc"><normaloff>:/icons/plus_w.png</normaloff></iconset></property><property name="iconSize"><size><width>16</width><height>16</height></size></property><property name="minimumSize"><size><width>0</width><height>40</height></size></property><property name="cursor"><cursorShape>PointingHandCursor</cursorShape></property></widget></item><item><widget class="QPushButton" name="btnVider"><property name="text"><string>  Vider</string></property><property name="icon"><iconset resource="resources.qrc"><normaloff>:/icons/refresh_w.png</normaloff></iconset></property><property name="iconSize"><size><width>16</width><height>16</height></size></property><property name="minimumSize"><size><width>0</width><height>40</height></size></property><property name="cursor"><cursorShape>PointingHandCursor</cursorShape></property></widget></item></layout></item><item><widget class="QFrame" name="frameInfo"><layout class="QHBoxLayout" name="layoutInfo"><property name="leftMargin"><number>12</number></property><property name="topMargin"><number>10</number></property><property name="rightMargin"><number>12</number></property><property name="bottomMargin"><number>10</number></property><property name="spacing"><number>10</number></property><item alignment="Qt::AlignTop"><widget class="QLabel" name="labelInfoIcon"><property name="pixmap"><pixmap resource="resources.qrc">:/icons/info_c.png</pixmap></property><property name="scaledContents"><bool>true</bool></property><property name="minimumSize"><size><width>18</width><height>18</height></size></property><property name="maximumSize"><size><width>18</width><height>18</height></size></property></widget></item><item><layout class="QVBoxLayout" name="layoutInfoTxt"><property name="spacing"><number>4</number></property><item><widget class="QLabel" name="labelInfoTitle"><property name="text"><string>Enregistrez les modifications</string></property></widget></item><item><widget class="QLabel" name="labelInfoText"><property name="text"><string>Remplissez les champs puis cliquez sur « Ajouter » pour enregistrer l'employé. Le champ « Équipe(s) » est facultatif.</string></property><property name="wordWrap"><bool>true</bool></property></widget></item></layout></item></layout></widget></item><item><spacer name="spF2"><property name="orientation"><enum>Qt::Vertical</enum></property><property name="sizeHint" stdset="0"><size><width>10</width><height>20</height></size></property></spacer></item></layout></widget></item><item><layout class="QVBoxLayout" name="layoutRight"><property name="spacing"><number>12</number></property><item><widget class="QFrame" name="frameList"><layout class="QVBoxLayout" name="layoutList"><property name="leftMargin"><number>16</number></property><property name="topMargin"><number>14</number></property><property name="rightMargin"><number>16</number></property><property name="bottomMargin"><number>10</number></property><property name="spacing"><number>10</number></property><item><layout class="QHBoxLayout" name="layoutListHead"><property name="spacing"><number>8</number></property><item><widget class="QLabel" name="labelListIcon"><property name="pixmap"><pixmap resource="resources.qrc">:/icons/users_c.png</pixmap></property><property name="scaledContents"><bool>true</bool></property><property name="minimumSize"><size><width>20</width><height>20</height></size></property><property name="maximumSize"><size><width>20</width><height>20</height></size></property></widget></item><item><widget class="QLabel" name="labelListTitle"><property name="text"><string>Liste des employés</string></property></widget></item><item><spacer name="spLH"><property name="orientation"><enum>Qt::Horizontal</enum></property><property name="sizeHint" stdset="0"><size><width>10</width><height>10</height></size></property></spacer></item></layout></item><item><layout class="QHBoxLayout" name="layoutSearch"><property name="spacing"><number>10</number></property><item><widget class="QLineEdit" name="lineSearch"><property name="placeholderText"><string>Rechercher (nom, prénom, email, rôle, département, équipe...)</string></property><property name="clearButtonEnabled"><bool>true</bool></property></widget></item><item><widget class="QComboBox" name="comboFilterRole"><property name="minimumSize"><size><width>125</width><height>0</height></size></property><item><property name="text"><string>Tous les rôles</string></property></item><item><property name="text"><string>Organisateur</string></property></item><item><property name="text"><string>Technicien</string></property></item><item><property name="text"><string>Mentor</string></property></item></widget></item><item><widget class="QComboBox" name="comboFilterDept"><property name="minimumSize"><size><width>155</width><height>0</height></size></property><item><property name="text"><string>Tous les départements</string></property></item><item><property name="text"><string>Logistique</string></property></item><item><property name="text"><string>Technique</string></property></item><item><property name="text"><string>Pédagogie/Mentorat</string></property></item></widget></item><item><widget class="QCheckBox" name="checkDispo"><property name="text"><string>Disponibles</string></property></widget></item></layout></item><item><layout class="QHBoxLayout" name="layoutActions"><property name="spacing"><number>10</number></property><item><widget class="QPushButton" name="btnProfil"><property name="text"><string>  Consulter le profil</string></property><property name="icon"><iconset resource="resources.qrc"><normaloff>:/icons/user_w.png</normaloff></iconset></property><property name="iconSize"><size><width>16</width><height>16</height></size></property><property name="minimumSize"><size><width>0</width><height>36</height></size></property><property name="cursor"><cursorShape>PointingHandCursor</cursorShape></property></widget></item><item><widget class="QPushButton" name="btnAffecter"><property name="text"><string>  Affecter à une équipe</string></property><property name="icon"><iconset resource="resources.qrc"><normaloff>:/icons/userplus_w.png</normaloff></iconset></property><property name="iconSize"><size><width>16</width><height>16</height></size></property><property name="minimumSize"><size><width>0</width><height>36</height></size></property><property name="cursor"><cursorShape>PointingHandCursor</cursorShape></property></widget></item><item><spacer name="spAct"><property name="orientation"><enum>Qt::Horizontal</enum></property><property name="sizeHint" stdset="0"><size><width>40</width><height>10</height></size></property></spacer></item><item><widget class="QPushButton" name="btnTrier"><property name="text"><string>  Trier</string></property><property name="icon"><iconset resource="resources.qrc"><normaloff>:/icons/sort_w.png</normaloff></iconset></property><property name="iconSize"><size><width>16</width><height>16</height></size></property><property name="minimumSize"><size><width>0</width><height>36</height></size></property><property name="cursor"><cursorShape>PointingHandCursor</cursorShape></property></widget></item><item><widget class="QPushButton" name="btnExporter"><property name="text"><string>  Exporter</string></property><property name="icon"><iconset resource="resources.qrc"><normaloff>:/icons/download_w.png</normaloff></iconset></property><property name="iconSize"><size><width>16</width><height>16</height></size></property><property name="minimumSize"><size><width>0</width><height>36</height></size></property><property name="cursor"><cursorShape>PointingHandCursor</cursorShape></property></widget></item></layout></item><item><widget class="QTableWidget" name="tableEmployes"><property name="editTriggers"><enum>QAbstractItemView::NoEditTriggers</enum></property><property name="alternatingRowColors"><bool>true</bool></property><property name="selectionMode"><enum>QAbstractItemView::SingleSelection</enum></property><property name="selectionBehavior"><enum>QAbstractItemView::SelectRows</enum></property><property name="showGrid"><bool>false</bool></property><property name="columnCount"><number>10</number></property><attribute name="verticalHeaderVisible"><bool>false</bool></attribute><column><property name="text"><string></string></property></column><column><property name="text"><string>ID</string></property></column><column><property name="text"><string>Nom</string></property></column><column><property name="text"><string>Prénom</string></property></column><column><property name="text"><string>Email</string></property></column><column><property name="text"><string>Rôle</string></property></column><column><property name="text"><string>Département</string></property></column><column><property name="text"><string>Équipe(s)</string></property></column><column><property name="text"><string>Disponibilité</string></property></column><column><property name="text"><string>Actions</string></property></column></widget></item><item><widget class="QLabel" name="labelCount"><property name="text"><string>Affichage de 0 sur 0 employés</string></property><property name="alignment"><set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set></property></widget></item></layout></widget></item><item><layout class="QHBoxLayout" name="layoutStats"><property name="spacing"><number>12</number></property><item><widget class="QFrame" name="frameStatDonut"><property name="minimumSize"><size><width>0</width><height>190</height></size></property><property name="maximumSize"><size><width>16777215</width><height>215</height></size></property><layout class="QVBoxLayout" name="layout_frameStatDonut"><property name="leftMargin"><number>16</number></property><property name="topMargin"><number>12</number></property><property name="rightMargin"><number>16</number></property><property name="bottomMargin"><number>10</number></property><property name="spacing"><number>6</number></property><item><layout class="QHBoxLayout" name="layoutH_frameStatDonut"><property name="spacing"><number>8</number></property><item><widget class="QLabel" name="icon_frameStatDonut"><property name="pixmap"><pixmap resource="resources.qrc">:/icons/bars_c.png</pixmap></property><property name="scaledContents"><bool>true</bool></property><property name="minimumSize"><size><width>18</width><height>18</height></size></property><property name="maximumSize"><size><width>18</width><height>18</height></size></property></widget></item><item><widget class="QLabel" name="labelStatDonut"><property name="text"><string>Statistiques des employés</string></property></widget></item><item><spacer name="spH_frameStatDonut"><property name="orientation"><enum>Qt::Horizontal</enum></property><property name="sizeHint" stdset="0"><size><width>10</width><height>10</height></size></property></spacer></item></layout></item><item><widget class="PieChartWidget" name="chartRole" native="true"></widget></item></layout></widget></item><item><widget class="QFrame" name="frameStatBar"><property name="minimumSize"><size><width>0</width><height>190</height></size></property><property name="maximumSize"><size><width>16777215</width><height>215</height></size></property><layout class="QVBoxLayout" name="layout_frameStatBar"><property name="leftMargin"><number>16</number></property><property name="topMargin"><number>12</number></property><property name="rightMargin"><number>16</number></property><property name="bottomMargin"><number>10</number></property><property name="spacing"><number>6</number></property><item><layout class="QHBoxLayout" name="layoutH_frameStatBar"><property name="spacing"><number>8</number></property><item><widget class="QLabel" name="icon_frameStatBar"><property name="pixmap"><pixmap resource="resources.qrc">:/icons/users_c.png</pixmap></property><property name="scaledContents"><bool>true</bool></property><property name="minimumSize"><size><width>18</width><height>18</height></size></property><property name="maximumSize"><size><width>18</width><height>18</height></size></property></widget></item><item><widget class="QLabel" name="labelStatBar"><property name="text"><string>Nombre d'employés par département</string></property></widget></item><item><spacer name="spH_frameStatBar"><property name="orientation"><enum>Qt::Horizontal</enum></property><property name="sizeHint" stdset="0"><size><width>10</width><height>10</height></size></property></spacer></item></layout></item><item><widget class="BarChartWidget" name="chartDept" native="true"></widget></item></layout></widget></item></layout></item></layout></item></layout></item></layout></widget><widget class="QWidget" name="pageEquipements"><layout class="QVBoxLayout" name="layoutPageEquipements"><property name="leftMargin"><number>0</number></property><property name="topMargin"><number>0</number></property><property name="rightMargin"><number>0</number></property><property name="bottomMargin"><number>0</number></property><property name="spacing"><number>12</number></property><item><layout class="QHBoxLayout" name="layoutTitleEquipements"><property name="spacing"><number>12</number></property><item><widget class="QLabel" name="labelTitleIconEquipements"><property name="pixmap"><pixmap resource="resources.qrc">:/icons/ti_cpu.png</pixmap></property><property name="scaledContents"><bool>true</bool></property><property name="minimumSize"><size><width>50</width><height>50</height></size></property><property name="maximumSize"><size><width>50</width><height>50</height></size></property></widget></item><item><layout class="QVBoxLayout" name="layoutTitleTxtEquipements"><property name="spacing"><number>0</number></property><item><widget class="QLabel" name="labelTitleEquipements"><property name="text"><string>Gestion des &lt;span style=&quot;color:#0BF8F6;&quot;&gt;Équipements&lt;/span&gt;</string></property><property name="textFormat"><enum>Qt::RichText</enum></property><property name="pageTitle" stdset="0"><bool>true</bool></property></widget></item><item><widget class="QLabel" name="labelSubtitleEquipements"><property name="text"><string>Suivez l'inventaire, l'état et l'attribution du matériel.</string></property><property name="pageSub" stdset="0"><bool>true</bool></property></widget></item></layout></item><item><spacer name="spTitleEquipements"><property name="orientation"><enum>Qt::Horizontal</enum></property><property name="sizeHint" stdset="0"><size><width>40</width><height>10</height></size></property></spacer></item><item><widget class="QLabel" name="labelHomeIconEquipements"><property name="pixmap"><pixmap resource="resources.qrc">:/icons/home_c.png</pixmap></property><property name="scaledContents"><bool>true</bool></property><property name="minimumSize"><size><width>16</width><height>16</height></size></property><property name="maximumSize"><size><width>16</width><height>16</height></size></property></widget></item><item><widget class="QLabel" name="labelBreadcrumbEquipements"><property name="text"><string>›  SmartHackathon Management  ›  Gestion des Équipements  ›  Module 4</string></property><property name="pageSub" stdset="0"><bool>true</bool></property></widget></item></layout></item><item><widget class="QFrame" name="framePlaceholderEquipements"><property name="card" stdset="0"><bool>true</bool></property><layout class="QVBoxLayout" name="layoutPhEquipements"><property name="leftMargin"><number>30</number></property><property name="topMargin"><number>30</number></property><property name="rightMargin"><number>30</number></property><property name="bottomMargin"><number>30</number></property><property name="spacing"><number>12</number></property><item><spacer name="spPhTEquipements"><property name="orientation"><enum>Qt::Vertical</enum></property><property name="sizeHint" stdset="0"><size><width>20</width><height>40</height></size></property></spacer></item><item alignment="Qt::AlignHCenter"><widget class="QLabel" name="labelPhIconEquipements"><property name="pixmap"><pixmap resource="resources.qrc">:/icons/ti_cpu.png</pixmap></property><property name="scaledContents"><bool>true</bool></property><property name="minimumSize"><size><width>84</width><height>84</height></size></property><property name="maximumSize"><size><width>84</width><height>84</height></size></property></widget></item><item><widget class="QLabel" name="labelPhTitleEquipements"><property name="text"><string>Interface « Équipements »</string></property><property name="phTitle" stdset="0"><bool>true</bool></property><property name="alignment"><set>Qt::AlignCenter</set></property></widget></item><item><widget class="QLabel" name="labelPhTextEquipements"><property name="text"><string>Cette interface est réalisée par le membre de l'équipe responsable de ce module.
-Elle sera intégrée ici dans le QStackedWidget. La navigation fonctionne : utilisez le menu de gauche.</string></property><property name="phText" stdset="0"><bool>true</bool></property><property name="alignment"><set>Qt::AlignCenter</set></property></widget></item><item><spacer name="spPhBEquipements"><property name="orientation"><enum>Qt::Vertical</enum></property><property name="sizeHint" stdset="0"><size><width>20</width><height>40</height></size></property></spacer></item></layout></widget></item></layout></widget><widget class="QWidget" name="pageJury"><layout class="QVBoxLayout" name="layoutPageJury"><property name="leftMargin"><number>0</number></property><property name="topMargin"><number>0</number></property><property name="rightMargin"><number>0</number></property><property name="bottomMargin"><number>0</number></property><property name="spacing"><number>12</number></property><item><layout class="QHBoxLayout" name="layoutTitleJury"><property name="spacing"><number>12</number></property><item><widget class="QLabel" name="labelTitleIconJury"><property name="pixmap"><pixmap resource="resources.qrc">:/icons/ti_award.png</pixmap></property><property name="scaledContents"><bool>true</bool></property><property name="minimumSize"><size><width>50</width><height>50</height></size></property><property name="maximumSize"><size><width>50</width><height>50</height></size></property></widget></item><item><layout class="QVBoxLayout" name="layoutTitleTxtJury"><property name="spacing"><number>0</number></property><item><widget class="QLabel" name="labelTitleJury"><property name="text"><string>Jury et &lt;span style=&quot;color:#0BF8F6;&quot;&gt;Évaluations&lt;/span&gt;</string></property><property name="textFormat"><enum>Qt::RichText</enum></property><property name="pageTitle" stdset="0"><bool>true</bool></property></widget></item><item><widget class="QLabel" name="labelSubtitleJury"><property name="text"><string>Gérez les membres du jury, les notes et le classement.</string></property><property name="pageSub" stdset="0"><bool>true</bool></property></widget></item></layout></item><item><spacer name="spTitleJury"><property name="orientation"><enum>Qt::Horizontal</enum></property><property name="sizeHint" stdset="0"><size><width>40</width><height>10</height></size></property></spacer></item><item><widget class="QLabel" name="labelHomeIconJury"><property name="pixmap"><pixmap resource="resources.qrc">:/icons/home_c.png</pixmap></property><property name="scaledContents"><bool>true</bool></property><property name="minimumSize"><size><width>16</width><height>16</height></size></property><property name="maximumSize"><size><width>16</width><height>16</height></size></property></widget></item><item><widget class="QLabel" name="labelBreadcrumbJury"><property name="text"><string>›  SmartHackathon Management  ›  Jury et Évaluations  ›  Module 6</string></property><property name="pageSub" stdset="0"><bool>true</bool></property></widget></item></layout></item><item><widget class="QFrame" name="framePlaceholderJury"><property name="card" stdset="0"><bool>true</bool></property><layout class="QVBoxLayout" name="layoutPhJury"><property name="leftMargin"><number>30</number></property><property name="topMargin"><number>30</number></property><property name="rightMargin"><number>30</number></property><property name="bottomMargin"><number>30</number></property><property name="spacing"><number>12</number></property><item><spacer name="spPhTJury"><property name="orientation"><enum>Qt::Vertical</enum></property><property name="sizeHint" stdset="0"><size><width>20</width><height>40</height></size></property></spacer></item><item alignment="Qt::AlignHCenter"><widget class="QLabel" name="labelPhIconJury"><property name="pixmap"><pixmap resource="resources.qrc">:/icons/ti_award.png</pixmap></property><property name="scaledContents"><bool>true</bool></property><property name="minimumSize"><size><width>84</width><height>84</height></size></property><property name="maximumSize"><size><width>84</width><height>84</height></size></property></widget></item><item><widget class="QLabel" name="labelPhTitleJury"><property name="text"><string>Interface « Jury »</string></property><property name="phTitle" stdset="0"><bool>true</bool></property><property name="alignment"><set>Qt::AlignCenter</set></property></widget></item><item><widget class="QLabel" name="labelPhTextJury"><property name="text"><string>Cette interface est réalisée par le membre de l'équipe responsable de ce module.
-Elle sera intégrée ici dans le QStackedWidget. La navigation fonctionne : utilisez le menu de gauche.</string></property><property name="phText" stdset="0"><bool>true</bool></property><property name="alignment"><set>Qt::AlignCenter</set></property></widget></item><item><spacer name="spPhBJury"><property name="orientation"><enum>Qt::Vertical</enum></property><property name="sizeHint" stdset="0"><size><width>20</width><height>40</height></size></property></spacer></item></layout></widget></item></layout></widget><widget class="QWidget" name="pageParametres"><layout class="QVBoxLayout" name="layoutPageParametres"><property name="leftMargin"><number>0</number></property><property name="topMargin"><number>0</number></property><property name="rightMargin"><number>0</number></property><property name="bottomMargin"><number>0</number></property><property name="spacing"><number>12</number></property><item><layout class="QHBoxLayout" name="layoutTitleParametres"><property name="spacing"><number>12</number></property><item><widget class="QLabel" name="labelTitleIconParametres"><property name="pixmap"><pixmap resource="resources.qrc">:/icons/ti_gear.png</pixmap></property><property name="scaledContents"><bool>true</bool></property><property name="minimumSize"><size><width>50</width><height>50</height></size></property><property name="maximumSize"><size><width>50</width><height>50</height></size></property></widget></item><item><layout class="QVBoxLayout" name="layoutTitleTxtParametres"><property name="spacing"><number>0</number></property><item><widget class="QLabel" name="labelTitleParametres"><property name="text"><string>Para&lt;span style=&quot;color:#0BF8F6;&quot;&gt;mètres&lt;/span&gt;</string></property><property name="textFormat"><enum>Qt::RichText</enum></property><property name="pageTitle" stdset="0"><bool>true</bool></property></widget></item><item><widget class="QLabel" name="labelSubtitleParametres"><property name="text"><string>Configuration de l'application.</string></property><property name="pageSub" stdset="0"><bool>true</bool></property></widget></item></layout></item><item><spacer name="spTitleParametres"><property name="orientation"><enum>Qt::Horizontal</enum></property><property name="sizeHint" stdset="0"><size><width>40</width><height>10</height></size></property></spacer></item><item><widget class="QLabel" name="labelHomeIconParametres"><property name="pixmap"><pixmap resource="resources.qrc">:/icons/home_c.png</pixmap></property><property name="scaledContents"><bool>true</bool></property><property name="minimumSize"><size><width>16</width><height>16</height></size></property><property name="maximumSize"><size><width>16</width><height>16</height></size></property></widget></item><item><widget class="QLabel" name="labelBreadcrumbParametres"><property name="text"><string>›  SmartHackathon Management  ›  Paramètres</string></property><property name="pageSub" stdset="0"><bool>true</bool></property></widget></item></layout></item><item><widget class="QFrame" name="framePlaceholderParametres"><property name="card" stdset="0"><bool>true</bool></property><layout class="QVBoxLayout" name="layoutPhParametres"><property name="leftMargin"><number>30</number></property><property name="topMargin"><number>30</number></property><property name="rightMargin"><number>30</number></property><property name="bottomMargin"><number>30</number></property><property name="spacing"><number>12</number></property><item><spacer name="spPhTParametres"><property name="orientation"><enum>Qt::Vertical</enum></property><property name="sizeHint" stdset="0"><size><width>20</width><height>40</height></size></property></spacer></item><item alignment="Qt::AlignHCenter"><widget class="QLabel" name="labelPhIconParametres"><property name="pixmap"><pixmap resource="resources.qrc">:/icons/ti_gear.png</pixmap></property><property name="scaledContents"><bool>true</bool></property><property name="minimumSize"><size><width>84</width><height>84</height></size></property><property name="maximumSize"><size><width>84</width><height>84</height></size></property></widget></item><item><widget class="QLabel" name="labelPhTitleParametres"><property name="text"><string>Interface « Paramètres »</string></property><property name="phTitle" stdset="0"><bool>true</bool></property><property name="alignment"><set>Qt::AlignCenter</set></property></widget></item><item><widget class="QLabel" name="labelPhTextParametres"><property name="text"><string>Cette interface est réalisée par le membre de l'équipe responsable de ce module.
+Elle sera intégrée ici dans le QStackedWidget. La navigation fonctionne : utilisez le menu de gauche.</string></property><property name="phText" stdset="0"><bool>true</bool></property><property name="alignment"><set>Qt::AlignCenter</set></property></widget></item><item><spacer name="spPhBEquipements"><property name="orientation"><enum>Qt::Vertical</enum></property><property name="sizeHint" stdset="0"><size><width>20</width><height>40</height></size></property></spacer></item></layout></widget></item></layout></widget><widget class="QWidget" name="pageJury"><layout class="QVBoxLayout" name="layoutPageJury"><property name="leftMargin"><number>0</number></property><property name="topMargin"><number>0</number></property><property name="rightMargin"><number>0</number></property><property name="bottomMargin"><number>0</number></property><property name="spacing"><number>12</number></property><item><layout class="QHBoxLayout" name="layoutTitleJury"><property name="spacing"><number>12</number></property><item><widget class="QLabel" name="labelTitleIconJury"><property name="pixmap"><pixmap resource="resources.qrc">:/icons/ti_award.png</pixmap></property><property name="scaledContents"><bool>true</bool></property><property name="minimumSize"><size><width>50</width><height>50</height></size></property><property name="maximumSize"><size><width>50</width><height>50</height></size></property></widget></item><item><layout class="QVBoxLayout" name="layoutTitleTxtJury"><property name="spacing"><number>0</number></property><item><widget class="QLabel" name="labelTitleJury"><property name="text"><string>Jury et &lt;span style=&quot;color:#0BF8F6;&quot;&gt;Évaluations&lt;/span&gt;</string></property><property name="textFormat"><enum>Qt::RichText</enum></property><property name="pageTitle" stdset="0"><bool>true</bool></property></widget></item><item><widget class="QLabel" name="labelSubtitleJury"><property name="text"><string>Gérez les membres du jury, les notes et le classement.</string></property><property name="pageSub" stdset="0"><bool>true</bool></property></widget></item></layout></item><item><spacer name="spTitleJury"><property name="orientation"><enum>Qt::Horizontal</enum></property><property name="sizeHint" stdset="0"><size><width>40</width><height>10</height></size></property></spacer></item><item><widget class="QLabel" name="labelHomeIconJury"><property name="pixmap"><pixmap resource="resources.qrc">:/icons/home_c.png</pixmap></property><property name="scaledContents"><bool>true</bool></property><property name="minimumSize"><size><width>16</width><height>16</height></size></property><property name="maximumSize"><size><width>16</width><height>16</height></size></property></widget></item><item><widget class="QLabel" name="labelBreadcrumbJury"><property name="text"><string>›  SmartHackathon Management  ›  Jury et Évaluations  ›  Module 6</string></property><property name="pageSub" stdset="0"><bool>true</bool></property></widget></item></layout></item><item><widget class="QScrollArea" name="scrollAreaJury">
+          <property name="focusPolicy"><enum>Qt::StrongFocus</enum></property>
+          <property name="frameShape"><enum>QFrame::NoFrame</enum></property>
+          <property name="horizontalScrollBarPolicy"><enum>Qt::ScrollBarAlwaysOff</enum></property>
+          <property name="widgetResizable"><bool>true</bool></property>
+          <widget class="QWidget" name="scrollContentJury">
+           <layout class="QVBoxLayout" name="verticalLayout_scrollContent">
+            <property name="spacing"><number>16</number></property>
+            <property name="leftMargin"><number>0</number></property>
+<property name="topMargin"><number>4</number></property>
+<property name="rightMargin"><number>12</number></property>
+<property name="bottomMargin"><number>12</number></property>
+
+            <item>
+             <widget class="QWidget" name="toolbarJury" native="true">
+              <property name="minimumSize"><size><width>0</width><height>46</height></size></property>
+              <property name="maximumSize"><size><width>16777215</width><height>46</height></size></property>
+              <layout class="QHBoxLayout" name="horizontalLayout_toolbarJury">
+               <property name="spacing"><number>14</number></property>
+               <property name="leftMargin"><number>0</number></property>
+<property name="topMargin"><number>0</number></property>
+<property name="rightMargin"><number>0</number></property>
+<property name="bottomMargin"><number>0</number></property>
+               <item>
+                <widget class="QLineEdit" name="lineEditSearch">
+                 <property name="minimumSize"><size><width>0</width><height>46</height></size></property>
+                 <property name="maximumSize"><size><width>16777215</width><height>46</height></size></property>
+                 <property name="placeholderText"><string>Rechercher un membre...</string></property>
+                 <property name="clearButtonEnabled"><bool>true</bool></property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QPushButton" name="btnAddMember">
+                 <property name="minimumSize"><size><width>200</width><height>46</height></size></property>
+                 <property name="maximumSize"><size><width>200</width><height>46</height></size></property>
+                 <property name="cursor"><cursorShape>PointingHandCursor</cursorShape></property>
+                 <property name="text"><string>+  Ajouter un membre</string></property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QPushButton" name="btnSort">
+                 <property name="minimumSize"><size><width>150</width><height>46</height></size></property>
+                 <property name="maximumSize"><size><width>150</width><height>46</height></size></property>
+                 <property name="cursor"><cursorShape>PointingHandCursor</cursorShape></property>
+                 <property name="text"><string>Trier</string></property>
+                </widget>
+               </item>
+              </layout>
+             </widget>
+            </item>
+
+            <item>
+             <widget class="QWidget" name="exportRowJury" native="true">
+              <property name="minimumSize"><size><width>0</width><height>42</height></size></property>
+              <property name="maximumSize"><size><width>16777215</width><height>42</height></size></property>
+              <layout class="QHBoxLayout" name="horizontalLayout_exportRow">
+               <property name="spacing"><number>0</number></property>
+               <property name="leftMargin"><number>0</number></property>
+<property name="topMargin"><number>0</number></property>
+<property name="rightMargin"><number>0</number></property>
+<property name="bottomMargin"><number>0</number></property>
+               <item>
+                <spacer name="horizontalSpacer_export">
+                 <property name="orientation"><enum>Qt::Horizontal</enum></property>
+                 <property name="sizeHint" stdset="0"><size><width>40</width><height>20</height></size></property>
+                </spacer>
+               </item>
+               <item>
+                <widget class="QPushButton" name="btnExport">
+                 <property name="minimumSize"><size><width>150</width><height>40</height></size></property>
+                 <property name="maximumSize"><size><width>150</width><height>40</height></size></property>
+                 <property name="cursor"><cursorShape>PointingHandCursor</cursorShape></property>
+                 <property name="text"><string>Exporter</string></property>
+                </widget>
+               </item>
+              </layout>
+             </widget>
+            </item>
+
+            <item>
+             <widget class="QFrame" name="cardTableJury">
+              <property name="minimumSize"><size><width>0</width><height>366</height></size></property>
+              <property name="maximumSize"><size><width>16777215</width><height>366</height></size></property>
+              <property name="frameShape"><enum>QFrame::StyledPanel</enum></property>
+              <layout class="QVBoxLayout" name="verticalLayout_cardTable">
+               <property name="spacing"><number>0</number></property>
+               <property name="leftMargin"><number>12</number></property>
+<property name="topMargin"><number>8</number></property>
+<property name="rightMargin"><number>12</number></property>
+<property name="bottomMargin"><number>8</number></property>
+               <item>
+                <widget class="QTableWidget" name="tableJury">
+                 <property name="frameShape"><enum>QFrame::NoFrame</enum></property>
+                 <property name="verticalScrollBarPolicy"><enum>Qt::ScrollBarAlwaysOff</enum></property>
+<column><property name="text"><string>Nom</string></property></column>
+<column><property name="text"><string>Prénom</string></property></column>
+<column><property name="text"><string>E-mail</string></property></column>
+<column><property name="text"><string>Téléphone</string></property></column>
+<column><property name="text"><string>Spécialité</string></property></column>
+<column><property name="text"><string>Entreprise</string></property></column>
+<column><property name="text"><string>Actions</string></property></column>
+                </widget>
+               </item>
+              </layout>
+             </widget>
+            </item>
+
+            <item>
+             <widget class="QWidget" name="footerJury" native="true">
+              <property name="minimumSize"><size><width>0</width><height>36</height></size></property>
+              <property name="maximumSize"><size><width>16777215</width><height>36</height></size></property>
+              <layout class="QHBoxLayout" name="horizontalLayout_footerJury">
+               <property name="spacing"><number>6</number></property>
+               <property name="leftMargin"><number>0</number></property>
+<property name="topMargin"><number>0</number></property>
+<property name="rightMargin"><number>0</number></property>
+<property name="bottomMargin"><number>0</number></property>
+               <item><widget class="QLabel" name="labelCountJury"><property name="text"><string>Affichage</string></property></widget></item>
+               <item>
+                <spacer name="horizontalSpacer_footer">
+                 <property name="orientation"><enum>Qt::Horizontal</enum></property>
+                 <property name="sizeHint" stdset="0"><size><width>40</width><height>20</height></size></property>
+                </spacer>
+               </item>
+               <item>
+                <widget class="QPushButton" name="btnPrevJury">
+                 <property name="minimumSize"><size><width>34</width><height>34</height></size></property>
+                 <property name="maximumSize"><size><width>34</width><height>34</height></size></property>
+                 <property name="cursor"><cursorShape>PointingHandCursor</cursorShape></property>
+                 <property name="text"><string></string></property>
+                </widget>
+               </item>
+               <item>
+                <widget class="QWidget" name="pagesContainer" native="true">
+                 <layout class="QHBoxLayout" name="pagesLayout">
+                  <property name="spacing"><number>6</number></property>
+                  <property name="leftMargin"><number>0</number></property>
+<property name="topMargin"><number>0</number></property>
+<property name="rightMargin"><number>0</number></property>
+<property name="bottomMargin"><number>0</number></property>
+                 </layout>
+                </widget>
+               </item>
+               <item>
+                <widget class="QPushButton" name="btnNextJury">
+                 <property name="minimumSize"><size><width>34</width><height>34</height></size></property>
+                 <property name="maximumSize"><size><width>34</width><height>34</height></size></property>
+                 <property name="cursor"><cursorShape>PointingHandCursor</cursorShape></property>
+                 <property name="text"><string></string></property>
+                </widget>
+               </item>
+              </layout>
+             </widget>
+            </item>
+
+            <item>
+             <widget class="QWidget" name="evalSection" native="true">
+              <layout class="QVBoxLayout" name="verticalLayout_eval">
+               <property name="spacing"><number>6</number></property>
+               <property name="leftMargin"><number>0</number></property>
+<property name="topMargin"><number>20</number></property>
+<property name="rightMargin"><number>0</number></property>
+<property name="bottomMargin"><number>0</number></property>
+               <item><widget class="QLabel" name="labelEvalTitle"><property name="text"><string>Fiche d'évaluation du jury</string></property></widget></item>
+               <item><widget class="QLabel" name="labelEvalSubtitle"><property name="text"><string>Toutes les rubriques sont sur cette page : faites défiler vers le bas pour les remplir.</string></property></widget></item>
+               <item>
+                <widget class="QWidget" name="evalContainer" native="true">
+                 <layout class="QVBoxLayout" name="verticalLayout_evalList">
+                  <property name="spacing"><number>14</number></property>
+                  <property name="leftMargin"><number>0</number></property>
+<property name="topMargin"><number>10</number></property>
+<property name="rightMargin"><number>0</number></property>
+<property name="bottomMargin"><number>10</number></property>
+                 </layout>
+                </widget>
+               </item>
+               <item>
+                <layout class="QHBoxLayout" name="horizontalLayout_evalFooter">
+                 <property name="spacing"><number>12</number></property>
+                 <item><widget class="QLabel" name="labelTotalScore"><property name="text"><string>Note globale : 0 / 50</string></property></widget></item>
+                 <item>
+                  <spacer name="horizontalSpacer_evalFooter">
+                   <property name="orientation"><enum>Qt::Horizontal</enum></property>
+                   <property name="sizeHint" stdset="0"><size><width>40</width><height>20</height></size></property>
+                  </spacer>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="btnEvalReset">
+                   <property name="minimumSize"><size><width>140</width><height>44</height></size></property>
+                   <property name="cursor"><cursorShape>PointingHandCursor</cursorShape></property>
+                   <property name="text"><string>Réinitialiser</string></property>
+                  </widget>
+                 </item>
+                 <item>
+                  <widget class="QPushButton" name="btnEvalSave">
+                   <property name="minimumSize"><size><width>210</width><height>44</height></size></property>
+                   <property name="cursor"><cursorShape>PointingHandCursor</cursorShape></property>
+                   <property name="text"><string>Enregistrer l'évaluation</string></property>
+                  </widget>
+                 </item>
+                </layout>
+               </item>
+              </layout>
+             </widget>
+            </item>
+
+           </layout>
+          </widget>
+         </widget>
+        </item></layout></widget><widget class="QWidget" name="pageParametres"><layout class="QVBoxLayout" name="layoutPageParametres"><property name="leftMargin"><number>0</number></property><property name="topMargin"><number>0</number></property><property name="rightMargin"><number>0</number></property><property name="bottomMargin"><number>0</number></property><property name="spacing"><number>12</number></property><item><layout class="QHBoxLayout" name="layoutTitleParametres"><property name="spacing"><number>12</number></property><item><widget class="QLabel" name="labelTitleIconParametres"><property name="pixmap"><pixmap resource="resources.qrc">:/icons/ti_gear.png</pixmap></property><property name="scaledContents"><bool>true</bool></property><property name="minimumSize"><size><width>50</width><height>50</height></size></property><property name="maximumSize"><size><width>50</width><height>50</height></size></property></widget></item><item><layout class="QVBoxLayout" name="layoutTitleTxtParametres"><property name="spacing"><number>0</number></property><item><widget class="QLabel" name="labelTitleParametres"><property name="text"><string>Para&lt;span style=&quot;color:#0BF8F6;&quot;&gt;mètres&lt;/span&gt;</string></property><property name="textFormat"><enum>Qt::RichText</enum></property><property name="pageTitle" stdset="0"><bool>true</bool></property></widget></item><item><widget class="QLabel" name="labelSubtitleParametres"><property name="text"><string>Configuration de l'application.</string></property><property name="pageSub" stdset="0"><bool>true</bool></property></widget></item></layout></item><item><spacer name="spTitleParametres"><property name="orientation"><enum>Qt::Horizontal</enum></property><property name="sizeHint" stdset="0"><size><width>40</width><height>10</height></size></property></spacer></item><item><widget class="QLabel" name="labelHomeIconParametres"><property name="pixmap"><pixmap resource="resources.qrc">:/icons/home_c.png</pixmap></property><property name="scaledContents"><bool>true</bool></property><property name="minimumSize"><size><width>16</width><height>16</height></size></property><property name="maximumSize"><size><width>16</width><height>16</height></size></property></widget></item><item><widget class="QLabel" name="labelBreadcrumbParametres"><property name="text"><string>›  SmartHackathon Management  ›  Paramètres</string></property><property name="pageSub" stdset="0"><bool>true</bool></property></widget></item></layout></item><item><widget class="QFrame" name="framePlaceholderParametres"><property name="card" stdset="0"><bool>true</bool></property><layout class="QVBoxLayout" name="layoutPhParametres"><property name="leftMargin"><number>30</number></property><property name="topMargin"><number>30</number></property><property name="rightMargin"><number>30</number></property><property name="bottomMargin"><number>30</number></property><property name="spacing"><number>12</number></property><item><spacer name="spPhTParametres"><property name="orientation"><enum>Qt::Vertical</enum></property><property name="sizeHint" stdset="0"><size><width>20</width><height>40</height></size></property></spacer></item><item alignment="Qt::AlignHCenter"><widget class="QLabel" name="labelPhIconParametres"><property name="pixmap"><pixmap resource="resources.qrc">:/icons/ti_gear.png</pixmap></property><property name="scaledContents"><bool>true</bool></property><property name="minimumSize"><size><width>84</width><height>84</height></size></property><property name="maximumSize"><size><width>84</width><height>84</height></size></property></widget></item><item><widget class="QLabel" name="labelPhTitleParametres"><property name="text"><string>Interface « Paramètres »</string></property><property name="phTitle" stdset="0"><bool>true</bool></property><property name="alignment"><set>Qt::AlignCenter</set></property></widget></item><item><widget class="QLabel" name="labelPhTextParametres"><property name="text"><string>Cette interface est réalisée par le membre de l'équipe responsable de ce module.
 Elle sera intégrée ici dans le QStackedWidget. La navigation fonctionne : utilisez le menu de gauche.</string></property><property name="phText" stdset="0"><bool>true</bool></property><property name="alignment"><set>Qt::AlignCenter</set></property></widget></item><item><spacer name="spPhBParametres"><property name="orientation"><enum>Qt::Vertical</enum></property><property name="sizeHint" stdset="0"><size><width>20</width><height>40</height></size></property></spacer></item></layout></widget></item></layout></widget></widget></item></layout></widget></item></layout></widget></widget></item></layout></widget>
  </widget>
  <customwidgets>

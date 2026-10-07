@@ -1,6 +1,7 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "participantscontroller.h"
+#include "jurycontroller.h"
 
 #include <QAbstractItemView>
 #include <QCheckBox>
@@ -14,6 +15,8 @@
 #include <QPainter>
 #include <QPainterPath>
 #include <QPair>
+#include <QPixmap>
+#include <QIcon>
 #include <QPushButton>
 #include <QScreen>
 #include <QStandardItemModel>
@@ -235,9 +238,15 @@ MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+    ui->labelBreadcrumbParticipants->setText(
+        QStringLiteral("›  SmartHackathon Management  ›  Gestion des Participants"));
+    if (ui->btnNavEquipes)
+        ui->btnNavEquipes->hide();
     setupNavigation();
     setupDecor();
+    setupMenu();                // menu d'accueil (module "menu")
     m_participants = new ParticipantsController(ui, this);   // page Participants (module integre)
+    m_jury = new JuryController(ui, this);                   // page Jury (module integre)
     showConnexion();            // l'application demarre sur l'ecran de connexion
 }
 
@@ -245,6 +254,8 @@ MainWindow::~MainWindow()
 {
     delete m_participants;      // avant ui : le module utilise les widgets de ui
     m_participants = nullptr;
+    delete m_jury;              // idem : avant ui
+    m_jury = nullptr;
     delete ui;
 }
 
@@ -253,16 +264,16 @@ MainWindow::~MainWindow()
 // ---------------------------------------------------------------------------
 void MainWindow::setupNavigation()
 {
-    // Connexion -> application
-    connect(ui->btnLogin, &QPushButton::clicked, this, [this]() { showApplication(); });
+    // Connexion -> menu d'accueil (ecran seul)
+    connect(ui->btnLogin, &QPushButton::clicked, this, [this]() { showMenu(); });
     // application -> Connexion
     connect(ui->btnLogout, &QPushButton::clicked, this, [this]() { showConnexion(); });
+    // "Accueil" du menu de gauche -> retour au menu d'accueil
+    connect(ui->btnNavAccueil, &QPushButton::clicked, this, [this]() { showMenu(); });
 
     // bouton du menu -> index de la page dans stackedPages (meme ordre que le .ui)
     const QList<QPair<QPushButton *, int>> nav = {
-        { ui->btnNavAccueil,      0 },   // Accueil / Tableau de bord
         { ui->btnNavParticipants, 1 },
-        { ui->btnNavEquipes,      2 },
         { ui->btnNavProjets,      3 },
         { ui->btnNavEmployes,     5 },   // notre module
         { ui->btnNavJury,         7 },
@@ -285,22 +296,161 @@ static void centerOnScreen(QWidget *w)
 
 void MainWindow::showConnexion()
 {
-    ui->stackedMain->setCurrentIndex(0);
+    m_expanded = false;
+    ui->stackedMain->setCurrentWidget(ui->pageConnexion);
     setFixedSize(960, 640);                         // meme taille que la maquette de connexion
     centerOnScreen(this);
 }
 
-void MainWindow::showApplication()
+// Fenetre agrandie et centree. Faite une seule fois apres la connexion : passer du menu
+// a l'application (ou inversement) ne change plus la taille choisie par l'utilisateur.
+void MainWindow::expandWindow()
 {
-    ui->stackedMain->setCurrentIndex(1);
-    ui->stackedPages->setCurrentIndex(0);           // Connexion -> Tableau de bord
-    ui->btnNavAccueil->setChecked(true);
+    if (m_expanded)
+        return;
+    m_expanded = true;
     setMinimumSize(0, 0);                           // le minimum est calcule par les layouts
     setMaximumSize(QWIDGETSIZE_MAX, QWIDGETSIZE_MAX);
     const QRect a = (screen() ? screen() : QGuiApplication::primaryScreen())->availableGeometry();
     const QSize want(qMin(1520, a.width() - 40), qMin(900, a.height() - 60));
     resize(want.expandedTo(minimumSizeHint()));
     centerOnScreen(this);
+}
+
+// Connexion -> menu d'accueil : ecran seul, sans barre laterale (comme la page de connexion)
+void MainWindow::showMenu()
+{
+    ui->stackedMain->setCurrentWidget(ui->pageMenu);
+    expandWindow();
+}
+
+// Menu -> application : barre laterale + pages, ouverte sur le module choisi.
+// Le clic simule celui du menu de gauche : la page change ET l'entree est mise en surbrillance.
+void MainWindow::showApplication(QPushButton *nav)
+{
+    ui->stackedMain->setCurrentWidget(ui->pageApp);
+    expandWindow();
+    nav->click();
+}
+
+// ---------------------------------------------------------------------------
+//  MENU D'ACCUEIL (module "menu") : page pageMenu de stackedMain (comme la Connexion, SANS
+//  barre laterale), affichee juste apres "Se connecter". Les 4 cartes ouvrent l'application
+//  sur le module correspondant (showApplication).
+//  Images : :/images/ (dossier images/). Style limite a pageMenu / widgetMenuAccueil.
+// ---------------------------------------------------------------------------
+void MainWindow::setupMenu()
+{
+    // "Admin" repris de la carte utilisateur de la barre laterale
+    ui->labelWelcome->setText(
+        QStringLiteral("Bienvenue, <span style='color:#38bdf8;'>%1</span> !")
+            .arg(ui->labelAdminName->text().toHtmlEscaped()));
+
+    // Logo de la banniere
+    const QPixmap logo(":/images/logo.png");
+    if (!logo.isNull())
+        ui->labelLogoImg->setPixmap(logo.scaled(56, 56, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+
+    // Illustration de la banniere
+    const QPixmap hero(":/images/hero.png");
+    if (!hero.isNull())
+        ui->labelIllustration->setPixmap(hero.scaledToHeight(250, Qt::SmoothTransformation));
+    else
+        ui->labelIllustration->setText(QStringLiteral("💡"));
+
+    // Icones des cartes
+    auto setIcon = [](QLabel *l, const QString &path) {
+        l->setPixmap(QPixmap(path).scaled(26, 26, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+        l->setAlignment(Qt::AlignCenter);
+    };
+    setIcon(ui->iconParticipants, ":/images/icon_participants.png");
+    setIcon(ui->iconProjets,      ":/images/icon_projets.png");
+    setIcon(ui->iconEmployes,     ":/images/icon_employes.png");
+    setIcon(ui->iconJury,         ":/images/icon_jury.png");
+
+    // Titre "Actions rapides" avec l'eclair
+    ui->labelQuick->setText(
+        QStringLiteral("<img src=':/images/zap.png' width='18' height='18'> &nbsp;Actions rapides"));
+
+    // Fond de l'ecran du menu (celui de la fenetre du projet d'origine)
+    ui->pageMenu->setStyleSheet(QStringLiteral(
+        "QWidget#pageMenu { background: qlineargradient(x1:0, y1:0, x2:1, y2:1,"
+        " stop:0 #0b1030, stop:1 #050818); }"));
+
+    // Style du menu (selecteurs #id : aucun effet sur le reste de l'application)
+    ui->widgetMenuAccueil->setStyleSheet(QStringLiteral(R"(
+        QLabel { color: white; background: transparent; }
+
+        /* ---------- Banniere ---------- */
+        #frameHero {
+            border: 1px solid #1e3a8a;
+            border-radius: 18px;
+            background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+                        stop:0 #0c1a4a, stop:0.6 #141a6b, stop:1 #1b1f8a);
+        }
+        #labelLogoImg { background: transparent; border-radius: 10px; }
+        #labelLogoMenu    { font-size: 22px; font-weight: bold; color: white; }
+        #labelTaglineMenu { font-size: 8px; font-weight: bold; color: #22d3ee; letter-spacing: 1px; }
+        #labelWelcome { font-size: 30px; font-weight: bold; color: white; }
+        #labelSubtitle{ font-size: 13px; color: #e5e7eb; }
+        #labelDesc    { font-size: 11px; color: #9ca3af; }
+        #labelIllustration { font-size: 90px; }
+
+        /* ---------- Titre section ---------- */
+        #labelQuick { font-size: 15px; font-weight: bold; color: #e5e7eb; }
+
+        /* ---------- Cartes ---------- */
+        #cardParticipants, #cardProjets, #cardEmployes, #cardJury {
+            border-radius: 16px;
+        }
+        #cardParticipants {
+            border: 1px solid #6366f1;
+            background: qlineargradient(x1:0,y1:0,x2:1,y2:1, stop:0 #3b2a9c, stop:1 #1b1f6b);
+        }
+        #cardProjets {
+            border: 1px solid #14b8a6;
+            background: qlineargradient(x1:0,y1:0,x2:1,y2:1, stop:0 #0f4c5c, stop:1 #12305a);
+        }
+        #cardEmployes {
+            border: 1px solid #a855f7;
+            background: qlineargradient(x1:0,y1:0,x2:1,y2:1, stop:0 #5b21b6, stop:1 #2e1a7a);
+        }
+        #cardJury {
+            border: 1px solid #3b82f6;
+            background: qlineargradient(x1:0,y1:0,x2:1,y2:1, stop:0 #1e3a8a, stop:1 #14235e);
+        }
+        #cardParticipants:hover { border: 2px solid #818cf8; }
+        #cardProjets:hover      { border: 2px solid #2dd4bf; }
+        #cardEmployes:hover     { border: 2px solid #c084fc; }
+        #cardJury:hover         { border: 2px solid #60a5fa; }
+
+        #iconParticipants, #iconProjets, #iconEmployes, #iconJury {
+            font-size: 22px; background: rgba(255,255,255,0.12);
+            border-radius: 12px; min-width: 48px; max-width: 48px;
+            min-height: 48px; max-height: 48px; qproperty-alignment: AlignCenter;
+        }
+        #titleParticipants, #titleProjets, #titleEmployes, #titleJury {
+            font-size: 15px; font-weight: bold; color: white;
+        }
+        #descParticipants, #descProjets, #descEmployes, #descJury {
+            font-size: 10px; color: #cbd5e1;
+        }
+
+        /* ---------- Boutons fleche ronds (padding:0 : annule le style global des QPushButton) ---------- */
+        #btnParticipants, #btnProjets, #btnEmployes, #btnJury {
+            color: white; font-size: 16px; font-weight: bold;
+            border: none; border-radius: 18px; padding: 0px;
+            background: qlineargradient(x1:0,y1:0,x2:1,y2:1, stop:0 #2563eb, stop:1 #4f46e5);
+        }
+        #btnParticipants:hover, #btnProjets:hover,
+        #btnEmployes:hover, #btnJury:hover { background: #60a5fa; border: none; }
+    )"));
+
+    // Cartes -> application ouverte sur le module choisi
+    connect(ui->btnParticipants, &QPushButton::clicked, this, [this]() { showApplication(ui->btnNavParticipants); });
+    connect(ui->btnProjets,      &QPushButton::clicked, this, [this]() { showApplication(ui->btnNavProjets); });
+    connect(ui->btnEmployes,     &QPushButton::clicked, this, [this]() { showApplication(ui->btnNavEmployes); });
+    connect(ui->btnJury,         &QPushButton::clicked, this, [this]() { showApplication(ui->btnNavJury); });
 }
 
 // ---------------------------------------------------------------------------

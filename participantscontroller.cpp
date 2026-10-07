@@ -925,7 +925,7 @@ bool ParticipantsController::setPdfAttachment(const QString &path, bool detectTe
     ui->pdfPrompt->setText(info.fileName());
     ui->pdfHint->setText("PDF prêt · Cliquez pour changer de fichier");
     if (detectTeam)
-        detectTeamFromPdf(m_pdfPath);           // le CV vient d'être déposé -> choisit l'équipe automatiquement
+        detectTeamFromPdf(m_pdfPath);
     return true;
 }
 
@@ -1520,4 +1520,3 @@ void ParticipantsController::onDelete(int id)
     addNotification("Participant supprimé", QString("%1 a été supprimé de la liste.").arg(who));
     refreshTable();
 }
-
