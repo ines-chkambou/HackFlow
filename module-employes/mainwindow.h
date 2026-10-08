@@ -10,6 +10,7 @@
 #include <QColor>
 
 class QCheckBox;
+class QPushButton;
 class QStandardItemModel;
 namespace Ui { class MainWindow; }
 
@@ -79,16 +80,12 @@ private:
 };
 
 // ===========================================================================
-//  Fenetre principale (anciennement GSmartHackathon)
+//  Fenetre principale (anciennement GSmartHackathon) : interface EMPLOYES
 // ===========================================================================
-// Phase "interface graphique" (un seul fichier .ui, vues = pages de QStackedWidget) :
-//  - seuls les boutons de NAVIGATION fonctionnent :
-//      "Se connecter"            : Connexion  -> application (Tableau de bord)
-//      menu de gauche            : change de page dans "stackedPages"
-//      "Deconnexion"             : application -> Connexion
-//  - tous les boutons d'ACTION (Ajouter, Vider, Trier, Exporter, modifier, supprimer,
-//    oeil du mot de passe, mot de passe oublie, creer un compte...) sont uniquement
-//    visuels : aucun traitement n'est branche dessus.
+//  Seul le module Employes est present (menu de gauche + page Employes).
+//  Les entrees des autres modules restent affichees mais n'ouvrent aucune page ici.
+//  Tous les boutons d'ACTION (Ajouter, Vider, Trier, Exporter, modifier, supprimer...)
+//  sont uniquement visuels : aucun traitement n'est branche dessus.
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
@@ -100,9 +97,8 @@ private:
     Ui::MainWindow *ui;
     QCheckBox *m_headCheck = nullptr;
 
-    void setupNavigation();     // boutons de navigation -> pages des QStackedWidget
-    void showConnexion();       // page Connexion (fenetre 960 x 640)
-    void showApplication();     // application (menu + pages), fenetre agrandie
+    void setupNavigation();     // menu de gauche
+    void showApplication();     // application (menu + page Employes), fenetre agrandie
     void setupDecor();          // donnees d'exemple affichees (tableau, graphiques)
     void positionHeaderCheck(); // placement de la case de l'en-tete (affichage uniquement)
 };

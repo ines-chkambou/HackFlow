@@ -13,6 +13,8 @@
 #include <QPainter>
 #include <QPainterPath>
 #include <QPair>
+#include <QPixmap>
+#include <QIcon>
 #include <QPushButton>
 #include <QScreen>
 #include <QStandardItemModel>
@@ -234,39 +236,31 @@ MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+    if (ui->btnNavEquipes)
+        ui->btnNavEquipes->hide();
     setupNavigation();
     setupDecor();
-    showConnexion();            // l'application demarre sur l'ecran de connexion
+    showApplication();          // l'application demarre directement sur le module Employes
 }
 
-MainWindow::~MainWindow() { delete ui; }
+MainWindow::~MainWindow()
+{
+    delete ui;
+}
 
 // ---------------------------------------------------------------------------
-//  NAVIGATION : seule partie fonctionnelle de cette phase
+//  NAVIGATION : seul le module Employes est present dans cette interface
 // ---------------------------------------------------------------------------
 void MainWindow::setupNavigation()
 {
-    // Connexion -> application
-    connect(ui->btnLogin, &QPushButton::clicked, this, [this]() { showApplication(); });
-    // application -> Connexion
-    connect(ui->btnLogout, &QPushButton::clicked, this, [this]() { showConnexion(); });
-
-    // bouton du menu -> index de la page dans stackedPages (meme ordre que le .ui)
-    const QList<QPair<QPushButton *, int>> nav = {
-        { ui->btnNavAccueil,      0 },   // Accueil / Tableau de bord
-        { ui->btnNavParticipants, 1 },
-        { ui->btnNavEquipes,      2 },
-        { ui->btnNavProjets,      3 },
-        { ui->btnNavEmployes,     5 },   // notre module
-        { ui->btnNavJury,         7 },
-        { ui->btnNavParametres,   8 }
-    };
-    for (const auto &p : nav) {
-        const int index = p.second;
-        connect(p.first, &QPushButton::clicked, this, [this, index]() {
-            ui->stackedPages->setCurrentIndex(index);
-        });
-    }
+    connect(ui->btnNavEmployes, &QPushButton::clicked, this, [this]() {
+        ui->stackedPages->setCurrentWidget(ui->pageEmployes);
+    });
+    // les autres modules n'ont pas de page ici : l'entree "Employes" reste selectionnee
+    const QList<QPushButton *> others = { ui->btnNavAccueil, ui->btnNavParticipants,
+                                          ui->btnNavProjets, ui->btnNavJury, ui->btnNavParametres };
+    for (QPushButton *b : others)
+        connect(b, &QPushButton::clicked, this, [this]() { ui->btnNavEmployes->setChecked(true); });
 }
 
 static void centerOnScreen(QWidget *w)
@@ -276,18 +270,11 @@ static void centerOnScreen(QWidget *w)
     w->move(a.center() - QPoint(w->width() / 2, w->height() / 2));
 }
 
-void MainWindow::showConnexion()
-{
-    ui->stackedMain->setCurrentIndex(0);
-    setFixedSize(960, 640);                         // meme taille que la maquette de connexion
-    centerOnScreen(this);
-}
-
 void MainWindow::showApplication()
 {
-    ui->stackedMain->setCurrentIndex(1);
-    ui->stackedPages->setCurrentIndex(0);           // Connexion -> Tableau de bord
-    ui->btnNavAccueil->setChecked(true);
+    ui->stackedMain->setCurrentWidget(ui->pageApp);
+    ui->stackedPages->setCurrentWidget(ui->pageEmployes);
+    ui->btnNavEmployes->setChecked(true);
     setMinimumSize(0, 0);                           // le minimum est calcule par les layouts
     setMaximumSize(QWIDGETSIZE_MAX, QWIDGETSIZE_MAX);
     const QRect a = (screen() ? screen() : QGuiApplication::primaryScreen())->availableGeometry();
