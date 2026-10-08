@@ -16,3 +16,6 @@ FORMS += \
 
 RESOURCES += \
     resources.qrc
+
+# MSVC : lire les fichiers sources en UTF-8 (accents)
+msvc: QMAKE_CXXFLAGS += /utf-8

@@ -1,0 +1,211 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry"><rect><x>0</x><y>0</y><width>960</width><height>640</height></rect></property>
+  <property name="windowTitle"><string>HackFlow - Smart Hackathon Management</string></property>
+  <widget class="QWidget" name="centralwidget"><layout class="QVBoxLayout" name="layoutCentralMain"><property name="leftMargin"><number>0</number></property><property name="topMargin"><number>0</number></property><property name="rightMargin"><number>0</number></property><property name="bottomMargin"><number>0</number></property><property name="spacing"><number>0</number></property><item><widget class="QStackedWidget" name="stackedMain"><property name="currentIndex"><number>0</number></property><widget class="QWidget" name="pageConnexion"><property name="styleSheet"><string notr="true">QWidget#pageConnexion { background-color: #000F29; }
+
+QFrame#frameLeftLogin { background-color: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #031A47, stop:0.45 #00112D, stop:1 #06123A); }
+QWidget#widgetLeftTopLogin { background: transparent; }
+QFrame#frameRightLogin { background-color: #020F2A; }
+QFrame#frameCardLogin { background-color: #00132F; border: 1px solid rgba(47,103,224,0.38); border-radius: 18px; }
+
+QLabel { background: transparent; }
+QLabel#labelBrandLogin { color: #FFFFFF; font-size: 28pt; font-weight: bold; }
+QLabel#labelTaglineLogin { color: #38B6F6; font-size: 9.5pt; }
+QLabel#labelHeroLogin { color: #FFFFFF; font-size: 26pt; font-weight: bold; }
+QLabel#labelDescLogin { color: #B7C3E2; font-size: 14pt; }
+QLabel#labelTitleLogin { color: #FFFFFF; font-size: 23pt; font-weight: bold; }
+QLabel#labelSubLogin { color: #AEBBDD; font-size: 13pt; }
+QLabel#labelNoAccountLogin { color: #D5DDF0; font-size: 12.5pt; }
+QLabel#labelErrorLogin { color: #F87171; background-color: rgba(239,68,68,0.12); border: 1px solid #EF4444; border-radius: 8px; padding: 8px 12px; font-size: 10.5pt; }
+
+QLineEdit { background-color: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #05264F, stop:1 #031A42); border: 1px solid rgba(47,103,224,0.85); border-radius: 12px; padding: 12px 50px 12px 50px; color: #FFFFFF; font-size: 13pt; selection-background-color: #4B26A0; }
+QLineEdit:focus { border: 1px solid #0BF8F6; }
+QLineEdit[error="true"] { border: 1px solid #EF4444; }
+QLineEdit#lineEmailLogin { background-image: url(:/icons/login_f_user.png); background-repeat: no-repeat; background-position: left center; }
+QLineEdit#linePasswordLogin { background-image: url(:/icons/login_f_lock.png); background-repeat: no-repeat; background-position: left center; }
+QToolButton#btnEyeLogin { background: transparent; border: none; margin-right: 10px; }
+QToolButton#btnEyeLogin:hover { background-color: rgba(47,103,224,0.25); border-radius: 6px; }
+
+QCheckBox { color: #C9D3EE; spacing: 12px; font-size: 13pt; background: transparent; }
+QCheckBox::indicator { width: 18px; height: 18px; border: 2px solid #5A6FD8; border-radius: 5px; background: transparent; }
+QCheckBox::indicator:checked { background: #0BF8F6; border: 2px solid #0BF8F6; image: url(:/icons/login_check.png); }
+
+QPushButton#btnLogin { background-color: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #38ABFD, stop:0.3 #4472FC, stop:0.7 #6D44FA, stop:1 #A04CF6); color: #FFFFFF; font-size: 13.5pt; font-weight: bold; border: none; border-radius: 12px; padding: 14px; min-height: 22px; }
+QPushButton#btnLogin:hover { background-color: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #5BBDFF, stop:0.3 #5F86FF, stop:0.7 #8260FF, stop:1 #B565FF); }
+QPushButton#btnLogin:pressed { background-color: #2D175A; }
+QPushButton#btnForgotLogin, QPushButton#btnCreateAccountLogin { background: transparent; border: none; padding: 4px; }
+QPushButton#btnForgotLogin { color: #AEBBDD; font-size: 11.5pt; }
+QPushButton#btnForgotLogin:hover { color: #0BF8F6; }
+QPushButton#btnCreateAccountLogin { color: #20B4F2; font-size: 12.5pt; font-weight: bold; }
+QPushButton#btnCreateAccountLogin:hover { color: #6FD3FF; }
+QFrame#lineSepLogin { background-color: rgba(47,103,224,0.28); border: none; max-height: 1px; min-height: 1px; }
+</string></property><layout class="QHBoxLayout" name="layoutMainLogin">
+   <property name="leftMargin"><number>0</number></property><property name="topMargin"><number>0</number></property><property name="rightMargin"><number>0</number></property><property name="bottomMargin"><number>0</number></property><property name="spacing"><number>0</number></property>
+   <item>
+    <widget class="QFrame" name="frameLeftLogin">
+     <property name="minimumSize"><size><width>480</width><height>0</height></size></property>
+     <property name="maximumSize"><size><width>480</width><height>16777215</height></size></property>
+     <layout class="QVBoxLayout" name="layoutLeftLogin">
+      <property name="leftMargin"><number>0</number></property><property name="topMargin"><number>0</number></property><property name="rightMargin"><number>0</number></property><property name="bottomMargin"><number>0</number></property><property name="spacing"><number>0</number></property>
+      <item>
+       <widget class="QWidget" name="widgetLeftTopLogin">
+        <layout class="QVBoxLayout" name="layoutLeftTopLogin">
+         <property name="leftMargin"><number>40</number></property><property name="topMargin"><number>24</number></property><property name="rightMargin"><number>40</number></property><property name="bottomMargin"><number>0</number></property><property name="spacing"><number>0</number></property>
+         <item>
+          <layout class="QHBoxLayout" name="layoutBrandLogin">
+           <property name="spacing"><number>12</number></property>
+           <item>
+            <widget class="QLabel" name="labelLogoIconLogin">
+             <property name="minimumSize"><size><width>84</width><height>84</height></size></property>
+             <property name="maximumSize"><size><width>84</width><height>84</height></size></property>
+             <property name="pixmap"><pixmap resource="resources.qrc">:/img/login_logo.png</pixmap></property>
+             <property name="scaledContents"><bool>true</bool></property>
+            </widget>
+           </item>
+           <item>
+            <layout class="QVBoxLayout" name="layoutBrandTxtLogin">
+             <property name="spacing"><number>0</number></property>
+             <item><widget class="QLabel" name="labelBrandLogin"><property name="text"><string>HackFlow</string></property></widget></item>
+             <item><widget class="QLabel" name="labelTaglineLogin"><property name="text"><string>ORGANISEZ · COLLABOREZ · INNOVEZ</string></property></widget></item>
+            </layout>
+           </item>
+           <item><spacer name="spacerBrandLogin"><property name="orientation"><enum>Qt::Horizontal</enum></property><property name="sizeHint" stdset="0"><size><width>20</width><height>20</height></size></property></spacer></item>
+          </layout>
+         </item>
+         <item><spacer name="spacerL1Login"><property name="orientation"><enum>Qt::Vertical</enum></property><property name="sizeType"><enum>QSizePolicy::Fixed</enum></property><property name="sizeHint" stdset="0"><size><width>20</width><height>34</height></size></property></spacer></item>
+         <item>
+          <widget class="QLabel" name="labelHeroLogin">
+           <property name="text"><string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p style="margin:0px;"&gt;&lt;span style="color:#FFFFFF;"&gt;Ensemble,&lt;/span&gt;&lt;/p&gt;&lt;p style="margin:0px;"&gt;&lt;span style="color:#55C8FF;"&gt;p&lt;/span&gt;&lt;span style="color:#5EBEFF;"&gt;o&lt;/span&gt;&lt;span style="color:#68B5FF;"&gt;u&lt;/span&gt;&lt;span style="color:#71ACFF;"&gt;r&lt;/span&gt;&lt;span style="color:#7BA3FF;"&gt; &lt;/span&gt;&lt;span style="color:#8499FF;"&gt;d&lt;/span&gt;&lt;span style="color:#8E90FF;"&gt;e&lt;/span&gt;&lt;span style="color:#978AFE;"&gt;s&lt;/span&gt;&lt;span style="color:#A188FC;"&gt; &lt;/span&gt;&lt;span style="color:#AB85FA;"&gt;i&lt;/span&gt;&lt;span style="color:#B482F8;"&gt;d&lt;/span&gt;&lt;span style="color:#BE80F6;"&gt;é&lt;/span&gt;&lt;span style="color:#C87DF4;"&gt;e&lt;/span&gt;&lt;span style="color:#D27BF3;"&gt;s&lt;/span&gt;&lt;/p&gt;&lt;p style="margin:0px;"&gt;&lt;span style="color:#55C8FF;"&gt;q&lt;/span&gt;&lt;span style="color:#5BC1FF;"&gt;u&lt;/span&gt;&lt;span style="color:#62BAFF;"&gt;i&lt;/span&gt;&lt;span style="color:#69B4FF;"&gt; &lt;/span&gt;&lt;span style="color:#70ADFF;"&gt;c&lt;/span&gt;&lt;span style="color:#77A6FF;"&gt;h&lt;/span&gt;&lt;span style="color:#7EA0FF;"&gt;a&lt;/span&gt;&lt;span style="color:#8599FF;"&gt;n&lt;/span&gt;&lt;span style="color:#8C92FF;"&gt;g&lt;/span&gt;&lt;span style="color:#938CFF;"&gt;e&lt;/span&gt;&lt;span style="color:#9A8AFD;"&gt;n&lt;/span&gt;&lt;span style="color:#A188FC;"&gt;t&lt;/span&gt;&lt;span style="color:#A886FB;"&gt; &lt;/span&gt;&lt;span style="color:#AF84F9;"&gt;d&lt;/span&gt;&lt;span style="color:#B682F8;"&gt;e&lt;/span&gt;&lt;span style="color:#BD80F7;"&gt;m&lt;/span&gt;&lt;span style="color:#C47EF5;"&gt;a&lt;/span&gt;&lt;span style="color:#CB7CF4;"&gt;i&lt;/span&gt;&lt;span style="color:#D27BF3;"&gt;n&lt;/span&gt;&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string></property>
+           <property name="textFormat"><enum>Qt::RichText</enum></property>
+          </widget>
+         </item>
+         <item><spacer name="spacerL15Login"><property name="orientation"><enum>Qt::Vertical</enum></property><property name="sizeType"><enum>QSizePolicy::Fixed</enum></property><property name="sizeHint" stdset="0"><size><width>20</width><height>16</height></size></property></spacer></item>
+         <item>
+          <widget class="QLabel" name="labelDescLogin">
+           <property name="text"><string>Organisez vos hackathons, collaborez
+avec votre équipe et transformez vos projets
+en réalité.</string></property>
+          </widget>
+         </item>
+         <item><spacer name="spacerL2Login"><property name="orientation"><enum>Qt::Vertical</enum></property><property name="sizeHint" stdset="0"><size><width>20</width><height>0</height></size></property></spacer></item>
+        </layout>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="labelIllustrationLogin">
+        <property name="minimumSize"><size><width>480</width><height>278</height></size></property>
+        <property name="maximumSize"><size><width>480</width><height>278</height></size></property>
+        <property name="pixmap"><pixmap resource="resources.qrc">:/img/login_illustration.png</pixmap></property>
+        <property name="scaledContents"><bool>true</bool></property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QFrame" name="frameRightLogin">
+     <layout class="QVBoxLayout" name="layoutRightLogin">
+      <property name="leftMargin"><number>10</number></property><property name="topMargin"><number>62</number></property><property name="rightMargin"><number>14</number></property><property name="bottomMargin"><number>40</number></property><property name="spacing"><number>0</number></property>
+      <item>
+       <widget class="QFrame" name="frameCardLogin">
+        <layout class="QVBoxLayout" name="layoutCardLogin">
+         <property name="leftMargin"><number>34</number></property><property name="topMargin"><number>36</number></property><property name="rightMargin"><number>34</number></property><property name="bottomMargin"><number>22</number></property><property name="spacing"><number>0</number></property>
+         <item><widget class="QLabel" name="labelTitleLogin"><property name="text"><string>Connexion</string></property></widget></item>
+         <item><spacer name="spacerT1Login"><property name="orientation"><enum>Qt::Vertical</enum></property><property name="sizeType"><enum>QSizePolicy::Fixed</enum></property><property name="sizeHint" stdset="0"><size><width>20</width><height>6</height></size></property></spacer></item>
+         <item><widget class="QLabel" name="labelSubLogin"><property name="text"><string>Accédez à votre espace HackFlow</string></property></widget></item>
+         <item><spacer name="spacerT2Login"><property name="orientation"><enum>Qt::Vertical</enum></property><property name="sizeType"><enum>QSizePolicy::Fixed</enum></property><property name="sizeHint" stdset="0"><size><width>20</width><height>36</height></size></property></spacer></item>
+         <item>
+          <widget class="QLineEdit" name="lineEmailLogin">
+           <property name="minimumSize"><size><width>0</width><height>50</height></size></property>
+           <property name="placeholderText"><string>Email ou nom d'utilisateur</string></property>
+           
+          </widget>
+         </item>
+         <item><spacer name="spacerT3Login"><property name="orientation"><enum>Qt::Vertical</enum></property><property name="sizeType"><enum>QSizePolicy::Fixed</enum></property><property name="sizeHint" stdset="0"><size><width>20</width><height>14</height></size></property></spacer></item>
+         <item>
+          <layout class="QGridLayout" name="gridPasswordLogin">
+           <property name="leftMargin"><number>0</number></property><property name="topMargin"><number>0</number></property><property name="rightMargin"><number>0</number></property><property name="bottomMargin"><number>0</number></property><property name="spacing"><number>0</number></property>
+           <item row="0" column="0">
+            <widget class="QLineEdit" name="linePasswordLogin">
+             <property name="minimumSize"><size><width>0</width><height>50</height></size></property>
+             <property name="echoMode"><enum>QLineEdit::Password</enum></property>
+             <property name="placeholderText"><string>Mot de passe</string></property>
+            </widget>
+           </item>
+           <item row="0" column="0" alignment="Qt::AlignRight|Qt::AlignVCenter">
+            <widget class="QToolButton" name="btnEyeLogin">
+             <property name="minimumSize"><size><width>44</width><height>38</height></size></property>
+             <property name="maximumSize"><size><width>44</width><height>38</height></size></property>
+             <property name="cursor"><cursorShape>PointingHandCursor</cursorShape></property>
+             <property name="toolTip"><string>Afficher / masquer</string></property>
+             <property name="icon"><iconset resource="resources.qrc"><normaloff>:/icons/login_eye.png</normaloff><normalon>:/icons/login_eye_off.png</normalon></iconset></property>
+             <property name="iconSize"><size><width>20</width><height>20</height></size></property>
+             
+             <property name="autoRaise"><bool>true</bool></property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <widget class="QLabel" name="labelErrorLogin">
+           <property name="visible"><bool>false</bool></property>
+           <property name="wordWrap"><bool>true</bool></property>
+           <property name="text"><string /></property>
+          </widget>
+         </item>
+         <item><spacer name="spacerT4Login"><property name="orientation"><enum>Qt::Vertical</enum></property><property name="sizeType"><enum>QSizePolicy::Fixed</enum></property><property name="sizeHint" stdset="0"><size><width>20</width><height>20</height></size></property></spacer></item>
+         <item><widget class="QCheckBox" name="checkRememberLogin"><property name="text"><string>Se souvenir de moi</string></property></widget></item>
+         <item><spacer name="spacerT5Login"><property name="orientation"><enum>Qt::Vertical</enum></property><property name="sizeType"><enum>QSizePolicy::Fixed</enum></property><property name="sizeHint" stdset="0"><size><width>20</width><height>22</height></size></property></spacer></item>
+         <item>
+          <widget class="QPushButton" name="btnLogin">
+           <property name="minimumSize"><size><width>0</width><height>52</height></size></property>
+           <property name="cursor"><cursorShape>PointingHandCursor</cursorShape></property>
+           <property name="text"><string>Se connecter</string></property>
+          </widget>
+         </item>
+         <item><spacer name="spacerT6Login"><property name="orientation"><enum>Qt::Vertical</enum></property><property name="sizeType"><enum>QSizePolicy::Fixed</enum></property><property name="sizeHint" stdset="0"><size><width>20</width><height>18</height></size></property></spacer></item>
+         <item>
+          <widget class="QPushButton" name="btnForgotLogin">
+           <property name="cursor"><cursorShape>PointingHandCursor</cursorShape></property>
+           <property name="font"><font><underline>true</underline></font></property>
+           <property name="text"><string>Mot de passe oublié ?</string></property>
+           <property name="flat"><bool>true</bool></property>
+          </widget>
+         </item>
+         <item><spacer name="spacerR4Login"><property name="orientation"><enum>Qt::Vertical</enum></property><property name="sizeHint" stdset="0"><size><width>20</width><height>16</height></size></property></spacer></item>
+         <item>
+          <widget class="QFrame" name="lineSepLogin">
+           <property name="frameShape"><enum>QFrame::HLine</enum></property>
+           <property name="frameShadow"><enum>QFrame::Plain</enum></property>
+          </widget>
+         </item>
+         <item><spacer name="spacerT7Login"><property name="orientation"><enum>Qt::Vertical</enum></property><property name="sizeType"><enum>QSizePolicy::Fixed</enum></property><property name="sizeHint" stdset="0"><size><width>20</width><height>22</height></size></property></spacer></item>
+         <item>
+          <layout class="QHBoxLayout" name="layoutCreateLogin">
+           <property name="spacing"><number>8</number></property>
+           <item><spacer name="spacerCreateLLogin"><property name="orientation"><enum>Qt::Horizontal</enum></property><property name="sizeHint" stdset="0"><size><width>20</width><height>20</height></size></property></spacer></item>
+           <item><widget class="QLabel" name="labelNoAccountLogin"><property name="text"><string>Vous n'avez pas de compte ?</string></property></widget></item>
+           <item>
+            <widget class="QPushButton" name="btnCreateAccountLogin">
+             <property name="cursor"><cursorShape>PointingHandCursor</cursorShape></property>
+             <property name="text"><string>Créer un compte</string></property>
+             <property name="flat"><bool>true</bool></property>
+            </widget>
+           </item>
+           <item><spacer name="spacerCreateRLogin"><property name="orientation"><enum>Qt::Horizontal</enum></property><property name="sizeHint" stdset="0"><size><width>20</width><height>20</height></size></property></spacer></item>
+          </layout>
+         </item>
+        </layout>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+  </layout></widget></widget></item></layout></widget>
+ </widget>
+ <resources><include location="resources.qrc" /></resources>
+ <connections />
+</ui>
