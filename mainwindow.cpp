@@ -842,13 +842,12 @@ void MainWindow::setupNavigation()
     // Ordre = ordre des boutons de la barre latérale
     m_stack->addWidget(makePage("house",          "Tableau de", "bord",       "Vue d'ensemble de l'événement HackFlow."));
     m_stack->addWidget(ui->pageContent);                       // Participants (page existante)
-    m_stack->addWidget(makePage("network",        "Gestion des", "Équipes",   "Consultez et gérez les équipes de l'événement."));
     m_stack->addWidget(makePage("clipboard-list", "Gestion des", "Projets",   "Consultez et gérez les projets des équipes."));
     m_stack->addWidget(makePage("users-round",    "Gestion des", "Employés",  "Consultez et gérez les employés."));
     m_stack->addWidget(makePage("shield-check",   "Gestion du",  "Jury",      "Consultez et gérez les membres du jury."));
     m_stack->addWidget(makePage("settings",       "",            "Paramètres", "Configurez l'application."));
 
-    const QList<QPushButton *> buttons = { ui->btnAccueil, ui->btnParticipants, ui->btnEquipes,
+    const QList<QPushButton *> buttons = { ui->btnAccueil, ui->btnParticipants,
                                            ui->btnProjets, ui->btnEmployes, ui->btnJury,
                                            ui->btnParametres };
     for (int i = 0; i < buttons.size(); ++i) {
@@ -870,7 +869,6 @@ void MainWindow::setupIcons()
     const QList<NavIcon> nav = {
         { ui->btnAccueil,      "house" },
         { ui->btnParticipants, "users" },
-        { ui->btnEquipes,      "network" },
         { ui->btnProjets,      "clipboard-list" },
         { ui->btnEmployes,     "users-round" },
         { ui->btnJury,         "shield-check" },

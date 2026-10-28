@@ -27,9 +27,9 @@ Connection& Connection::createInstance() {
 
 
 bool Connection::createConnection() {
-    db.setDatabaseName("hackflow1");// saisissez le nom de votre source de données ici
-    db.setUserName("ines");// saisissez votre nom d'utilisateur ici
-    db.setPassword("2025");// saisissez votre mot de passe utilisateur ici
+    db.setDatabaseName("");// saisissez le nom de votre source de données ici
+    db.setUserName("");// saisissez votre nom d'utilisateur ici
+    db.setPassword("");// saisissez votre mot de passe utilisateur ici
 
     if (db.open()) {
         qDebug() << "Connexion établie";

@@ -80,13 +80,6 @@
         </widget>
        </item>
        <item>
-        <widget class="QPushButton" name="btnEquipes">
-         <property name="text"><string>  Équipes</string></property>
-         <property name="checkable"><bool>true</bool></property>
-         <property name="autoExclusive"><bool>true</bool></property>
-        </widget>
-       </item>
-       <item>
         <widget class="QPushButton" name="btnProjets">
          <property name="text"><string>  Projets</string></property>
          <property name="checkable"><bool>true</bool></property>
