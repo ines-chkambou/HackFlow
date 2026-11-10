@@ -1424,6 +1424,21 @@ void MainWindow::onAjouter()
         return;
     }
 
+    // ---- Unicité : email et téléphone déjà utilisés par un autre participant ? ----
+    // (en modification, m_editingId permet d'ignorer le participant lui-même)
+    if (Participant::emailExiste(email, m_editingId)) {
+        QMessageBox::warning(this, "Email déjà utilisé",
+                             "Un autre participant est déjà inscrit avec cet email.");
+        ui->editEmail->setFocus();
+        return;
+    }
+    if (Participant::telephoneExiste(tel, m_editingId)) {
+        QMessageBox::warning(this, "Téléphone déjà utilisé",
+                             "Un autre participant est déjà inscrit avec ce numéro.");
+        ui->editTel->setFocus();
+        return;
+    }
+
     const int  editedId = m_editingId;
     const bool isNew    = (editedId < 0);
     Participant p(isNew ? Participant::prochainId() : editedId, nom, prenom, email, tel, m_pdfPath,

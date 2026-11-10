@@ -268,3 +268,64 @@ bool Participant::emailValide(const QString &email, QString *raison, QString *su
     if (raison) raison->clear();
     return true;
 }
+
+// ===========================================================================
+//  Unicité : Email
+//  Cherche dans la base un AUTRE participant (MATRICULE <> idIgnore) ayant
+//  le même email. La comparaison ignore les majuscules et les espaces :
+//  « Ines@Gmail.com » et « ines@gmail.com » sont le même email.
+// ===========================================================================
+bool Participant::emailExiste(const QString &email, int idIgnore)
+{
+    QSqlQuery query;
+    query.prepare("SELECT COUNT(*) FROM PARTICIPANT "
+                  "WHERE LOWER(TRIM(EMAIL)) = :email AND MATRICULE <> :id");
+    query.bindValue(":email", email.trimmed().toLower());
+    query.bindValue(":id", idIgnore);
+
+    if (!query.exec() || !query.next()) {
+        qDebug() << "Erreur vérification email :" << query.lastError().text();
+        return false;
+    }
+    return query.value(0).toInt() > 0;
+}
+
+// ---------------------------------------------------------------------------
+//  Met un numéro sous une forme unique pour pouvoir le comparer :
+//  « +216 20 123 456 », « 0021620123456 », « 20 123 456 » → « 20123456 »
+// ---------------------------------------------------------------------------
+QString Participant::normaliserTelephone(const QString &tel)
+{
+    QString chiffres;
+    for (const QChar c : tel)
+        if (c.isDigit()) chiffres += c;                 // on garde uniquement les chiffres
+
+    if (chiffres.startsWith("00216") && chiffres.size() == 13)
+        chiffres.remove(0, 5);                          // 00216XXXXXXXX → XXXXXXXX
+    else if (chiffres.startsWith("216") && chiffres.size() == 11)
+        chiffres.remove(0, 3);                          // 216XXXXXXXX   → XXXXXXXX
+    return chiffres;
+}
+
+// ===========================================================================
+//  Unicité : Téléphone
+//  Le même numéro peut être écrit de plusieurs façons (espaces, +216...),
+//  donc on compare les numéros normalisés et non le texte brut.
+// ===========================================================================
+bool Participant::telephoneExiste(const QString &tel, int idIgnore)
+{
+    const QString cible = normaliserTelephone(tel);
+
+    QSqlQuery query;
+    query.prepare("SELECT TEL FROM PARTICIPANT WHERE MATRICULE <> :id");
+    query.bindValue(":id", idIgnore);
+
+    if (!query.exec()) {
+        qDebug() << "Erreur vérification téléphone :" << query.lastError().text();
+        return false;
+    }
+    while (query.next())
+        if (normaliserTelephone(query.value(0).toString()) == cible)
+            return true;
+    return false;
+}

@@ -51,6 +51,12 @@ public:
     static bool emailValide(const QString &email, QString *raison = nullptr,
                             QString *suggestion = nullptr);
 
+    // Unicité : l'email / le téléphone est-il déjà utilisé par un AUTRE participant ?
+    // idIgnore = id du participant en cours de modification (-1 pour un ajout)
+    static bool emailExiste(const QString &email, int idIgnore = -1);
+    static bool telephoneExiste(const QString &tel, int idIgnore = -1);
+    static QString normaliserTelephone(const QString &tel);   // « +216 20 123 456 » → « 20123456 »
+
 private:
     int     id;
     QString nom, prenom, email, telephone, pieceJointe, role, equipe, dispo;
