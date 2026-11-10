@@ -271,18 +271,21 @@
                  <property name="placeholderText"><string>Nom du participant</string></property>
                 </widget>
                </item>
+               <item><widget class="QLabel" name="lblNomEtat"><property name="text"><string></string></property></widget></item>
                <item><widget class="QLabel" name="lblPrenom"><property name="text"><string>Prénom *</string></property></widget></item>
                <item>
                 <widget class="QLineEdit" name="editPrenom">
                  <property name="placeholderText"><string>Prénom du participant</string></property>
                 </widget>
                </item>
+               <item><widget class="QLabel" name="lblPrenomEtat"><property name="text"><string></string></property></widget></item>
                <item><widget class="QLabel" name="lblEmail"><property name="text"><string>Email *</string></property></widget></item>
                <item>
                 <widget class="QLineEdit" name="editEmail">
                  <property name="placeholderText"><string>exemple@email.com</string></property>
                 </widget>
                </item>
+               <item><widget class="QLabel" name="lblEmailEtat"><property name="text"><string></string></property></widget></item>
                <item><widget class="QLabel" name="lblTel"><property name="text"><string>Téléphone *</string></property></widget></item>
                <item>
                 <widget class="QLineEdit" name="editTel">

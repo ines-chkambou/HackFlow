@@ -46,6 +46,11 @@ public:
     static QList<Participant> lister(bool *ok = nullptr);   // SELECT de tous les participants
     static int prochainId();          // MAX(ID) + 1
 
+    // Contrôles de saisie (retournent false + la raison si invalide)
+    static bool nomValide(const QString &texte, QString *raison = nullptr);
+    static bool emailValide(const QString &email, QString *raison = nullptr,
+                            QString *suggestion = nullptr);
+
 private:
     int     id;
     QString nom, prenom, email, telephone, pieceJointe, role, equipe, dispo;

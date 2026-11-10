@@ -31,11 +31,14 @@
 #include <QAction>
 #include <QActionGroup>
 #include <QLabel>
+#include <QLineEdit>
+#include <QStyle>
 #include <QMenu>
 #include <QMessageBox>
 #include <QPainter>
 #include <QPainterPath>
 #include <QRegularExpression>
+#include <QRegularExpressionValidator>
 #include <QStackedWidget>
 #include <QVBoxLayout>
 #include <QTextStream>
@@ -54,6 +57,20 @@ static const QStringList kDispos  = { "Disponible", "En cours", "En attente" };
 // ---------------------------------------------------------------------------
 //  Icônes (Lucide) : fichiers blancs dans icons/ (resources.qrc), teintés à la demande
 // ---------------------------------------------------------------------------
+// Affiche l'état d'un champ sous celui-ci (vert = valide, rouge = invalide)
+// etat : "" (neutre, champ vide), "ok" ou "erreur"
+static void afficherEtat(QLineEdit *champ, QLabel *label, const QString &etat, const QString &message)
+{
+    champ->setProperty("etat", etat);
+    champ->style()->unpolish(champ);      // ré-applique la feuille de style
+    champ->style()->polish(champ);
+    label->setProperty("etat", etat);
+    label->style()->unpolish(label);
+    label->style()->polish(label);
+    label->setText(message);
+    label->setVisible(!message.isEmpty());
+}
+
 static QPixmap iconPixmap(const QString &name, const QColor &color = Qt::white, int size = 20)
 {
     const QPixmap src(QString(":/icons/%1.png").arg(name));
@@ -778,9 +795,9 @@ MainWindow::MainWindow(QWidget *parent)
     connect(ui->btnNext,    &QPushButton::clicked, this, &MainWindow::onNextPage);
 
     connect(ui->globalSearch,      &QLineEdit::textChanged, this, &MainWindow::onFiltersChanged);
-    connect(ui->comboFiltreRole,   &QComboBox::currentIndexChanged, this, &MainWindow::onFiltersChanged);
-    connect(ui->comboFiltreEquipe, &QComboBox::currentIndexChanged, this, &MainWindow::onFiltersChanged);
-    connect(ui->comboFiltreDispo,  &QComboBox::currentIndexChanged, this, &MainWindow::onFiltersChanged);
+    connect(ui->comboFiltreRole,   qOverload<int>(&QComboBox::currentIndexChanged), this, &MainWindow::onFiltersChanged);
+    connect(ui->comboFiltreEquipe, qOverload<int>(&QComboBox::currentIndexChanged), this, &MainWindow::onFiltersChanged);
+    connect(ui->comboFiltreDispo,  qOverload<int>(&QComboBox::currentIndexChanged), this, &MainWindow::onFiltersChanged);
 
     connect(ui->participantsTable->horizontalHeader(), &QHeaderView::sectionClicked,
             this, &MainWindow::onHeaderClicked);
@@ -893,6 +910,37 @@ void MainWindow::setupIcons()
     ui->editId->addAction(iconOf("user", field, 16),     QLineEdit::LeadingPosition);
     ui->editNom->addAction(iconOf("user", field, 16),    QLineEdit::LeadingPosition);
     ui->editPrenom->addAction(iconOf("user", field, 16), QLineEdit::LeadingPosition);
+
+    // Nom / Prénom : lettres uniquement (accents acceptés), espaces, tiret et apostrophe
+    // ex. « abdul al said », « Ben-Ali », « O'Neil » — aucun chiffre ni symbole
+    static const QRegularExpression reNomSaisie(R"(^[\p{L}]+([ '\-][\p{L}]*)*$)");
+    ui->editNom->setValidator(new QRegularExpressionValidator(reNomSaisie, ui->editNom));
+    ui->editPrenom->setValidator(new QRegularExpressionValidator(reNomSaisie, ui->editPrenom));
+
+    // Vérification en direct pendant la saisie : message sous chaque champ
+    auto verifierNom = [](QLineEdit *champ, QLabel *label) {
+        const QString t = champ->text();
+        if (t.trimmed().isEmpty()) { afficherEtat(champ, label, "", ""); return; }
+        QString raison;
+        if (Participant::nomValide(t, &raison)) afficherEtat(champ, label, "ok", "✓ Valide");
+        else                                    afficherEtat(champ, label, "erreur", "✗ " + raison);
+    };
+    connect(ui->editNom, &QLineEdit::textChanged, this,
+            [=] { verifierNom(ui->editNom, ui->lblNomEtat); });
+    connect(ui->editPrenom, &QLineEdit::textChanged, this,
+            [=] { verifierNom(ui->editPrenom, ui->lblPrenomEtat); });
+    connect(ui->editEmail, &QLineEdit::textChanged, this, [this] {
+        const QString t = ui->editEmail->text();
+        if (t.trimmed().isEmpty()) { afficherEtat(ui->editEmail, ui->lblEmailEtat, "", ""); return; }
+        QString raison;
+        if (Participant::emailValide(t, &raison))
+            afficherEtat(ui->editEmail, ui->lblEmailEtat, "ok", "✓ Adresse email valide");
+        else
+            afficherEtat(ui->editEmail, ui->lblEmailEtat, "erreur", "✗ " + raison);
+    });
+    ui->lblNomEtat->hide();
+    ui->lblPrenomEtat->hide();
+    ui->lblEmailEtat->hide();
     ui->editEmail->addAction(iconOf("mail", field, 16),  QLineEdit::LeadingPosition);
     ui->btnAjouter->setIcon(iconOf("plus", Qt::white, 18));
     ui->btnVider->setIcon(iconOf("rotate-cw", Qt::white, 18));
@@ -1354,6 +1402,11 @@ QLineEdit, QComboBox {
 }
 QLineEdit:focus, QComboBox:focus { border: 1px solid #19d3ff; }
 QLineEdit[readOnly="true"] { color: #8fa3d6; }
+QLineEdit[etat="ok"]     { border: 1px solid #22c55e; }
+QLineEdit[etat="erreur"] { border: 1px solid #ef4444; }
+#formPanel QLabel#lblNomEtat, #formPanel QLabel#lblPrenomEtat, #formPanel QLabel#lblEmailEtat { font-size: 9px; }
+#formPanel QLabel[etat="ok"]     { color: #4ade80; }
+#formPanel QLabel[etat="erreur"] { color: #f87171; }
 QComboBox::drop-down { border: none; width: 28px; }
 QComboBox::down-arrow { image: url(:/icons/chevron-down-small.png); width: 14px; height: 14px; }
 QComboBox QAbstractItemView {
@@ -1697,9 +1750,28 @@ void MainWindow::onAjouter()
         QMessageBox::warning(this, "Champs requis", "Veuillez remplir tous les champs obligatoires (*).");
         return;
     }
-    static const QRegularExpression re(R"(^[\w.+-]+@[\w-]+\.[\w.-]+$)");
-    if (!re.match(email).hasMatch()) {
-        QMessageBox::warning(this, "Email invalide", "Veuillez saisir une adresse email valide.");
+    // Contrôle de saisie : nom / prénom (lettres uniquement) et email valide
+    QString raison, suggestion;
+    if (!Participant::nomValide(nom, &raison)) {
+        QMessageBox::warning(this, "Nom invalide", "Nom : " + raison + "\nExemple : Al Said");
+        ui->editNom->setFocus();
+        return;
+    }
+    if (!Participant::nomValide(prenom, &raison)) {
+        QMessageBox::warning(this, "Prénom invalide", "Prénom : " + raison + "\nExemple : Abdul");
+        ui->editPrenom->setFocus();
+        return;
+    }
+    if (!Participant::emailValide(email, &raison, &suggestion)) {
+        if (!suggestion.isEmpty() &&
+            QMessageBox::question(this, "Email",
+                                  QString("Vouliez-vous dire %1 ?").arg(suggestion)) == QMessageBox::Yes) {
+            ui->editEmail->setText(suggestion);   // corrige puis l'utilisateur reclique sur Ajouter
+        } else if (suggestion.isEmpty()) {
+            QMessageBox::warning(this, "Email invalide",
+                                 raison + "\nExemple : nom.prenom@gmail.com");
+        }
+        ui->editEmail->setFocus();
         return;
     }
 
@@ -1874,7 +1946,11 @@ void MainWindow::onExporter()
         return;
     }
     QTextStream out(&f);
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
     out.setEncoding(QStringConverter::Utf8);
+#else
+    out.setCodec("UTF-8");
+#endif
     out << "ID;Nom;Prénom;Email;Téléphone;Rôle;Équipe;Disponibilité\n";
     for (const Participant &p : filteredData())
         out << p.getId() << ';' << p.getNom() << ';' << p.getPrenom() << ';' << p.getEmail() << ';' << p.getTelephone() << ';'
