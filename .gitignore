@@ -1,0 +1,93 @@
+# ============================================================
+#  SmartHackathon / HackFlow — Qt 6 (MinGW 64-bit)
+#  Fichier .gitignore
+# ============================================================
+
+# --- Dossiers de compilation Qt / Qt Creator ---
+build/
+build-*/
+debug/
+release/
+*.Debug/
+*.Release/
+
+# --- Artefacts de compilation ---
+*.o
+*.obj
+*.a
+*.lib
+*.dll
+*.so
+*.dylib
+*.exe
+*.pdb
+*.ilk
+*.exp
+*.res
+
+# --- Fichiers générés par qmake / moc / uic / rcc ---
+Makefile
+Makefile.*
+.qmake.stash
+moc_*.cpp
+moc_*.h
+ui_*.h
+qrc_*.cpp
+*.moc
+*.prl
+
+# --- Qt Creator : configuration locale de la machine ---
+.qtcreator/
+*.pro.user
+*.pro.user.*
+.qtc_clangd/
+compile_commands.json
+CMakeLists.txt.user*
+CMakeCache.txt
+CMakeFiles/
+
+# --- Bases de données (ne jamais versionner) ---
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+*.sqlite
+*.sqlite3
+*.sqlite-journal
+*.sqlite-wal
+*.sqlite-shm
+
+# --- Fichiers temporaires / sauvegardes ---
+*.tmp
+*.temp
+*.bak
+*.old
+*.orig
+*.rej
+*.swp
+*.swo
+*~
+*.autosave
+*.log
+
+# --- Secrets et configuration locale ---
+.env
+.env.*
+secrets.*
+credentials.*
+*.key
+*.pem
+*.local
+config.local.*
+
+# --- Système d'exploitation ---
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+.DS_Store
+$RECYCLE.BIN/
+
+# --- Archives ---
+*.zip
+*.7z
+*.rar
