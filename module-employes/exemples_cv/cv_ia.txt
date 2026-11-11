@@ -1,0 +1,5 @@
+Sara Trabelsi - Data Scientist
+Contact : sara.trabelsi@email.com
+Compétences : Python, Machine Learning, Deep Learning, TensorFlow, PyTorch, Keras, scikit-learn, Pandas, NumPy, NLP, traitement du langage naturel, OpenCV, SQL, Power BI.
+Expérience : 3 ans d'expérience en data science. Projets : classification de textes (NLP), détection d'objets avec OpenCV, modèles de prédiction.
+Formation : Master en intelligence artificielle. Statistiques et big data avec Spark.
