@@ -1,0 +1,146 @@
+SmartHackathon - HackFlow - Interface graphique (phase GUI)  |  Qt 6.7.3, qmake
+=========================================================================
+OUVRIR : Qt Creator > Fichier > Ouvrir un fichier ou un projet > SmartHackathon.pro > Ctrl+R
+(Qt Designer seul n'active aucun bouton : il faut compiler le PROJET.)
+
+CONVENTIONS DU DOCUMENT "BONNES PRATIQUES"
+  - projet "SmartHackathon", systeme de build qmake
+  - classe principale MainWindow : mainwindow.h / .cpp / .ui
+  - UN SEUL fichier .ui ; les vues sont des pages de QStackedWidget
+      stackedMain  : page 0 = Connexion, page 1 = application, page 2 = Choix du role
+      stackedPages : Accueil, Participants, Projets, Mentors, Employes,
+                     Equipements, Jury, Parametres
+
+PARCOURS (document Word : Connexion -> Tableau de bord -> modules)
+  Connexion --[Se connecter : verification du compte]--> Choix du role --[Participant / Jury / Employe]--> Tableau de bord
+  Tableau de bord --[menu de gauche]--> chaque module (le menu ne montre que les modules du role)
+  application --[Deconnexion]--> Connexion ; Choix du role --[Echap]--> Connexion
+
+PAGE "CHOIX DU ROLE" (pageRoles, stackedMain index 2)
+  - 3 cartes : Participant, Jury, Employe (Employe = Organisateur / Mentor / Technicien a selectionner,
+    puis "Acceder comme Employe").
+  - Droits : ils dependent du ROLE DU COMPTE connecte (voir "AUTHENTIFICATION" ci-dessous), pas de la
+      carte choisie : un module non autorise pour le compte disparait du menu de gauche.
+      Le compte Administrateur voit tous les modules (Accueil, Participants, Projets, Employes, Jury, Parametres).
+  - L'en-tete de la page (logo, HackFlow, slogan, "Choisissez votre role", sous-titre) est aligne a GAUCHE.
+  - Le module Equipes a ete supprime (bouton du menu + page).
+  - Aucune ressource ajoutee : memes icones / images que le reste de l'application.
+
+FONCTIONNEL : connexion/comptes, navigation, modules Participants, Projets, Jury, Employes (partie CV).
+MODULE EMPLOYES (employeescontroller.h / .cpp) - tous les boutons fonctionnent :
+  Ajouter (controle nom / prenom / e-mail unique), Vider (efface le formulaire), crayon (modifier : le formulaire passe
+  en mode "Enregistrer / Annuler"), poubelle (supprimer avec confirmation), oeil et "Consulter le profil" (fiche),
+  Trier (menu : ID, nom, prenom, role, departement, disponibilite), Exporter (fichier CSV des lignes affichees),
+  Affecter a une equipe (analyse du CV), recherche + filtres role / departement / "Disponibles" (coche = seulement
+  les disponibles), case de l'en-tete (tout cocher), compteur et graphiques mis a jour, barre de recherche du haut.
+  Les employes sont sauvegardes dans <AppData>/HackFlow/employees.json. Les droits du compte restent appliques.
+BOUTONS ENCORE VISUELS : cloche (hors Participants).
+
+MODULE PROJETS (projet "gestion_des_projets", projectspage.h / .cpp)
+  - Integre dans pageProjets (sous l'en-tete de la page). Liste / grille, recherche, filtres statut / equipe,
+    "Nouveau projet" (bouton dans l'en-tete de la page), voir / modifier / changer le statut / supprimer,
+    statistiques, donut, projets par equipe, dernieres activites. La barre de recherche du haut filtre les projets.
+  - Donnees d'exemple en memoire (non sauvegardees).
+
+MODULE JURY (zip "participant-employee-jury", jurycontroller.h / .cpp, scrollhelpers.h)
+  - Page Jury : membres du jury (recherche, ajout, modification, suppression, tri, pagination, export CSV)
+    + fiche d'evaluation (criteres de 0 a 10). Icones : dossier images/icons/.
+
+METIERS INNOVANTS DU MODULE EMPLOYES (zip "SmartHackathonnn")
+  1) AUTHENTIFICATION + PRIVILEGES (authmanager.*) : "Se connecter" verifie le compte (e-mail ou nom d'utilisateur),
+     mots de passe haches PBKDF2, verrouillage 60 s apres 5 echecs, "Se souvenir de moi", oeil du mot de passe.
+     Comptes de demonstration (crees au 1er lancement) :
+         admin@hackflow.com         Admin@123     Administrateur  (tout + gestion des utilisateurs / e-mail)
+         organisateur@hackflow.com  Orga@1234     Organisateur    (tout sauf Parametres ; employes : ajouter/modifier/exporter/affecter)
+         technicien@hackflow.com    Tech@1234     Technicien      (Accueil, Projets, Employes en lecture + export)
+         mentor@hackflow.com        Mentor@123    Mentor          (Accueil, Participants, Projets, Jury)
+         (comptes crees par "Creer un compte" : role Visiteur = Accueil seulement)
+     Les droits se modifient dans AuthManager::privilegesForRole. Menu du bouton Admin (en haut a droite) :
+     gerer les utilisateurs / roles, configurer l'e-mail (SMTP), se deconnecter.
+     Si les comptes ci-dessus sont refuses (ancien fichier) : supprimer le dossier HackFlow
+     (Windows %APPDATA%\HackFlow | Linux ~/.local/share/HackFlow | macOS ~/Library/Application Support/HackFlow).
+  2) MOT DE PASSE OUBLIE (forgotpassworddialog.*, mailer.*) : code a 6 chiffres envoye par e-mail (10 min, 5 essais).
+     Envoi SMTP a configurer une fois : connexion admin > menu Admin > Configurer l'e-mail (SMTP). Sans SMTP, le
+     message est enregistre en .eml dans <AppData>/HackFlow/outbox (rien n'est envoye).
+  3) CREER UN COMPTE (createaccountdialog.*) : nom, e-mail, mot de passe (8 car., lettre + chiffre) ; si le SMTP est
+     configure, verification de l'e-mail par code ; role Visiteur, a promouvoir par l'administrateur.
+  4) ATTRIBUTION AUTOMATIQUE PAR CV (cvanalyzer.*, cvassigndialog.*) : page Employes > selectionner un employe >
+     "Affecter a une equipe" > charger le CV (.docx, .txt, .md ; .pdf si Qt PDF installe). Competences detectees,
+     compatibilite par equipe, equilibrage (6 membres max), colonne "Equipe(s)" mise a jour. CV d'essai : exemples_cv/.
+
+COMPILATION : le .pro (ou CMakeLists.txt) ajoute network, concurrent, gui-private (+ pdf si disponible).
+
+INTEGRER LE MODULE D'UN AUTRE MEMBRE
+  Qt Designer > mainwindow.ui > stackedPages > choisir la page (ex. pageParticipants)
+  et y deposer les widgets de la maquette. La page "Employes" (pageEmployes) est la notre.
+
+INTEGRATION DU MODULE PARTICIPANTS (projet "le5er")
+  - Les widgets sont dans mainwindow.ui, page "pageParticipants" (UN SEUL fichier .ui conserve).
+    Les 6 noms deja pris par la page Employes ont recu le suffixe "Part" :
+    btnAjouterPart, btnViderPart, btnTrierPart, btnExporterPart, comboRolePart, comboDispoPart.
+  - La logique est dans participantscontroller.h / .cpp (classe ParticipantsController, creee dans le
+    constructeur de MainWindow). Ajout / modification / suppression, filtres, tri, pagination,
+    export CSV, piece jointe PDF (detection de l'equipe), sauvegarde participants.json, notifications.
+  - Barre de recherche du haut (lineTopSearch) : filtre les participants quand la page Participants est affichee.
+    Elle est videe a chaque changement de page.
+  - Cloche (btnBell) : ouvre les notifications du module Participants (pastille rouge, SMS de confirmation).
+  - Icones du module : dossier icons_participants/ (prefixe de ressources ":/part/") pour ne pas entrer
+    en collision avec icons/ de HackFlow (ex. bell.png existe dans les deux).
+  - Le style du module est applique uniquement a formPanel et tablePanel : les autres pages sont inchangees.
+  - Qt PDF (facultatif) : si le module est installe, SmartHackathon.pro l'active tout seul (HAVE_QTPDF).
+  - Donnees : participants.json et notifications.json dans le dossier AppData de l'application
+    (nom d'application "HackFlow", donc different de l'ancien "Participants").
+
+
+=====================================================================
+INTEGRATIONS AJOUTEES (version complete)
+=====================================================================
+1) MODULE PROJETS (page "Projets")  -- projectspage.h / .cpp   (origine : zip "gestion-projets")
+   Liste / grille, recherche, filtres statut + equipe, "Nouveau projet" (en-tete de la page),
+   voir / modifier / changer le statut / supprimer, statistiques, donut, projets par equipe,
+   dernieres activites. La barre de recherche du haut filtre les projets quand la page est affichee.
+   Le style du module ne s'applique qu'a cette page.
+
+2) MODULE JURY (page "Jury")  -- jurycontroller.h / .cpp, scrollhelpers.h   (origine : zip "participant-employee-jury")
+   Membres du jury (recherche, ajout, modification, suppression, tri, pagination, export CSV) et
+   fiche d'evaluation. Icones : dossier images/icons/ (8 fichiers ajoutes a resources.qrc).
+
+3) METIERS INNOVANTS (zip "Employes") portes ici : connexion + page Employes
+   a) AUTHENTIFICATION AVEC GESTION DES PRIVILEGES  (authmanager.*)
+      "Se connecter" verifie reellement le compte (e-mail ou nom d'utilisateur + mot de passe), PUIS
+      ouvre le Choix du role. Mots de passe hashes (PBKDF2-SHA256 + sel), verrouillage 60 s apres 5 echecs.
+      Comptes de demonstration (crees au premier lancement) :
+          admin@hackflow.com         Admin@123     Administrateur
+          organisateur@hackflow.com  Orga@1234     Organisateur
+          technicien@hackflow.com    Tech@1234     Technicien
+          mentor@hackflow.com        Mentor@123    Mentor
+      Les privileges dependent du ROLE DU COMPTE (modifiables dans AuthManager::privilegesForRole) :
+          Administrateur : tout (+ Parametres, gestion des utilisateurs, configuration e-mail)
+          Organisateur   : Accueil, Participants, Projets, Employes, Jury ; employes : ajouter, modifier, exporter, affecter
+          Technicien     : Accueil, Projets, Employes (lecture + export)
+          Mentor         : Accueil, Participants, Projets, Jury
+          Visiteur       : Accueil seulement (comptes crees par "Creer un compte")
+      Un module non autorise disparait du menu de gauche ; une action non autorisee est grisee
+      ("Privilege requis : ..."). Le choix de la carte (Participant / Jury / Employe) sur la page
+      "Choix du role" ne change plus les droits : ils viennent du compte.
+      Menu du bouton Admin : gerer les utilisateurs / roles, configurer l'e-mail (admin), se deconnecter.
+      Fichier des comptes : <AppData>/HackFlow/users.json. En cas de souci (ancien fichier), supprimer
+      le dossier HackFlow : Windows %APPDATA%\HackFlow | Linux ~/.local/share/HackFlow.
+   b) CREER UN COMPTE  (createaccountdialog.*) : nom, e-mail, mot de passe (8 car. min., lettre + chiffre).
+      Si le SMTP est configure, un code a 6 chiffres verifie l'e-mail ; sinon creation directe.
+      Le compte a le role "Visiteur" ; l'administrateur change son role (Admin > Gerer les utilisateurs).
+   c) MOT DE PASSE OUBLIE PAR E-MAIL  (forgotpassworddialog.*, mailer.*) : code a 6 chiffres (10 min, 5 essais),
+      puis nouveau mot de passe. A configurer UNE FOIS : Admin > Configurer l'e-mail (SMTP) > "Envoyer un
+      e-mail de test" (Gmail : smtp.gmail.com, STARTTLS 587, "mot de passe d'application").
+      Sans SMTP configure, aucun e-mail ne part : le message est enregistre dans <AppData>/HackFlow/outbox.
+   d) ATTRIBUTION AUTOMATIQUE PAR CV  (cvanalyzer.*, cvassigndialog.*) : page Employes > selectionner un employe >
+      "Affecter a une equipe" > charger le CV (.docx, .txt, .md, .pdf si Qt PDF installe). Detection des
+      competences, compatibilite par equipe, equilibrage des effectifs (max 6), suggestion role/departement.
+      Profils des equipes : teamProfiles() dans cvanalyzer.cpp. CV d'essai : dossier exemples_cv/.
+      Limite : pas d'OCR (CV scanne en image illisible).
+
+4) PAGE "CHOIX DU ROLE" : le bloc d'en-tete (logo, HackFlow, slogan, "Choisissez votre role", sous-titre)
+   est maintenant aligne a GAUCHE (comme les cartes) au lieu d'etre centre.
+
+COMPILATION : qmake (SmartHackathon.pro) ou CMake. Modules Qt : Widgets, Network, Concurrent, Gui-private
+  (+ Pdf facultatif). "gui-private" utilise des en-tetes internes de Qt : compiler avec la version de Qt installee.

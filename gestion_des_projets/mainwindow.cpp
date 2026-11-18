@@ -28,6 +28,9 @@
 #include <QScrollArea>
 #include <QSpinBox>
 #include <QStackedWidget>
+#include <QSqlDatabase>
+#include <QSqlQuery>
+#include <QSqlError>
 #include <QVBoxLayout>
 
 // ---------------------------------------------------------------- helpers
@@ -205,7 +208,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     setMinimumSize(1150, 720);
     setStyleSheet(QString::fromUtf8(kStyle));
 
-    seedData();
+    loadProjectsFromDatabase();
 
     QWidget *central = new QWidget;
     central->setObjectName("central");
@@ -250,55 +253,26 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
     refresh();
 }
 
-void MainWindow::seedData()
+bool MainWindow::loadProjectsFromDatabase()
 {
-    auto add = [this](const QString &name, const QString &desc, const QString &team,
-                      const QString &status, int members, int progress,
-                      QDate s, QDate e, const QString &icon, const QString &color) {
+    QSqlQuery query(QSqlDatabase::database("hackflow_oracle"));
+    if (!query.exec("SELECT ID_PROJET, TITRE, DESCRIPTION, STATUT, DATE_DEBUT, DATE_RENDU, EQUIPE FROM INES.PROJET ORDER BY ID_PROJET")) {
+        QMessageBox::critical(this, QString::fromUtf8("Lecture Oracle"), query.lastError().text());
+        return false;
+    }
+    m_projects.clear(); m_nextId = 1;
+    while (query.next()) {
         Project p;
-        p.id = m_nextId++;
-        p.name = name; p.desc = desc; p.team = team; p.status = status;
-        p.members = members; p.progress = progress; p.start = s; p.end = e;
-        p.icon = icon; p.color = color;
-        m_projects.push_back(p);
-    };
-    const QString run = "En cours", wait = "En attente";
-    const QString d = kDone;
-    add("GreenTeam", QString::fromUtf8("Application de gestion des déchets et sensibilisation environnementale."),
-        "GreenTeam", run, 4, 65, QDate(2025,4,12), QDate(2025,4,13), QString::fromUtf8("🍃"), "#1fb56b");
-    add("HealthCare", QString::fromUtf8("Plateforme de suivi médical et prise de rendez-vous en ligne."),
-        "TechVision", run, 5, 40, QDate(2025,4,12), QDate(2025,4,13), QString::fromUtf8("🛡"), "#5a44e8");
-    add("SmartCity", QString::fromUtf8("Solution pour une ville plus intelligente et connectée."),
-        "UrbanAI", wait, 5, 20, QDate(2025,4,12), QDate(2025,4,13), QString::fromUtf8("📖"), "#f29a2e");
-    add("EcoSolutions", QString::fromUtf8("Plateforme de recyclage et de tri intelligent."),
-        "CleanEnergy", run, 5, 75, QDate(2025,4,11), QDate(2025,4,13), QString::fromUtf8("📈"), "#2a8bff");
-    add("UrbanAI", QString::fromUtf8("Application de mobilité urbaine intelligente."),
-        "SmartCity", d, 5, 100, QDate(2025,4,10), QDate(2025,4,12), QString::fromUtf8("🎮"), "#b44dff");
-    add("MedTech", QString::fromUtf8("Solution de télémédecine pour les zones rurales."),
-        "HealthCare", run, 4, 60, QDate(2025,4,12), QDate(2025,4,13), QString::fromUtf8("💙"), "#1ea7c9");
-    add("EduLearn", QString::fromUtf8("Plateforme d'apprentissage collaboratif en ligne."),
-        "GreenTeam", run, 4, 55, QDate(2025,4,12), QDate(2025,4,13), QString::fromUtf8("🎓"), "#1fb56b");
-    add("AgriSmart", QString::fromUtf8("Capteurs connectés pour une agriculture durable."),
-        "GreenTeam", run, 3, 35, QDate(2025,4,12), QDate(2025,4,13), QString::fromUtf8("🌱"), "#1fb56b");
-    add("WasteTrack", QString::fromUtf8("Suivi des collectes de déchets en temps réel."),
-        "GreenTeam", d, 4, 100, QDate(2025,4,10), QDate(2025,4,12), QString::fromUtf8("♻"), "#1fb56b");
-    add("SafeRoad", QString::fromUtf8("Prévention des accidents grâce à l'analyse du trafic."),
-        "TechVision", run, 5, 80, QDate(2025,4,11), QDate(2025,4,13), QString::fromUtf8("🚦"), "#16b9d6");
-    add("FinTrack", QString::fromUtf8("Suivi budgétaire pour les étudiants."),
-        "TechVision", d, 3, 100, QDate(2025,4,10), QDate(2025,4,12), QString::fromUtf8("💰"), "#16b9d6");
-    add("CityPulse", QString::fromUtf8("Tableau de bord de la qualité de l'air urbain."),
-        "UrbanAI", run, 4, 45, QDate(2025,4,12), QDate(2025,4,13), QString::fromUtf8("🏙"), "#b44dff");
-
-    m_activities = {
-        { "Leila Sassi",     QString::fromUtf8("a créé le projet GreenTeam"),          QString::fromUtf8("il y a 2 min") },
-        { "Karim Ben Ali",   QString::fromUtf8("a rejoint l'équipe TechVision"),       QString::fromUtf8("il y a 15 min") },
-        { "Ahmed Trabelsi",  QString::fromUtf8("a mis à jour le projet SmartCity"),    QString::fromUtf8("il y a 32 min") },
-        { "Sara Mahmoud",    QString::fromUtf8("a commenté sur HealthCare"),           QString::fromUtf8("il y a 1 h") },
-        { "Youssef Jebali",  QString::fromUtf8("a terminé le projet UrbanAI"),         QString::fromUtf8("il y a 2 h") }
-    };
-    m_notif = 1;
+        p.id = query.value(0).toInt(); p.name = query.value(1).toString();
+        p.desc = query.value(2).toString(); p.status = query.value(3).toString();
+        p.start = query.value(4).toDate(); p.end = query.value(5).toDate();
+        p.team = query.value(6).toString(); p.members = 1;
+        p.progress = p.status == kDone ? 100 : 0;
+        const TeamStyle ts = teamStyle(p.team); p.icon = ts.icon; p.color = ts.color;
+        m_nextId = qMax(m_nextId, p.id + 1); m_projects.push_back(p);
+    }
+    return true;
 }
-
 // ------------------------------------------------------------- UI building
 
 QWidget *MainWindow::buildSidebar()
@@ -1081,61 +1055,55 @@ bool MainWindow::projectDialog(Project &pr, const QString &title)
 
 void MainWindow::addProject()
 {
-    Project p;
-    p.id = 0;
-    p.status = "En cours";
-    p.members = 3;
-    p.progress = 0;
-    p.start = QDate::currentDate();
-    p.end = QDate::currentDate().addDays(2);
-    p.team = "GreenTeam";
-    if (!projectDialog(p, "Nouveau projet"))
-        return;
-    p.id = m_nextId++;
-    const TeamStyle ts = teamStyle(p.team);
-    p.icon = ts.icon;
-    p.color = ts.color;
-    m_projects.prepend(p);
-    addActivity("a créé le projet " + p.name);
-    refresh();
+    Project p; p.id=0; p.status="En cours"; p.members=3; p.progress=0;
+    p.start=QDate::currentDate(); p.end=QDate::currentDate().addDays(2); p.team="GreenTeam";
+    if (!projectDialog(p, "Nouveau projet")) return;
+    QSqlQuery q(QSqlDatabase::database("hackflow_oracle"));
+    q.prepare("INSERT INTO INES.PROJET (TITRE, DESCRIPTION, STATUT, DATE_DEBUT, DATE_RENDU, EQUIPE) VALUES (:t,:d,:s,:sd,:ed,:e)");
+    q.bindValue(":t",p.name); q.bindValue(":d",p.desc); q.bindValue(":s",p.status);
+    q.bindValue(":sd",p.start); q.bindValue(":ed",p.end); q.bindValue(":e",p.team);
+    if (!q.exec()) { QMessageBox::critical(this,"Oracle",q.lastError().text()); return; }
+    QSqlQuery idq(QSqlDatabase::database("hackflow_oracle"));
+    if (!idq.exec("SELECT INES.SEQ_PROJET.CURRVAL FROM DUAL") || !idq.next()) {
+        QMessageBox::critical(this,"Oracle",idq.lastError().text()); loadProjectsFromDatabase(); refresh(); return;
+    }
+    p.id=idq.value(0).toInt(); const TeamStyle ts=teamStyle(p.team); p.icon=ts.icon; p.color=ts.color;
+    m_projects.prepend(p); addActivity("a créé le projet "+p.name); refresh();
 }
 
 void MainWindow::editProject(int id)
 {
-    const int i = indexOfProject(id);
-    if (i < 0) return;
-    Project p = m_projects[i];
-    if (!projectDialog(p, "Modifier le projet"))
-        return;
-    m_projects[i] = p;
-    addActivity("a mis à jour le projet " + p.name);
-    refresh();
+    const int i=indexOfProject(id); if(i<0) return; Project p=m_projects[i];
+    if(!projectDialog(p,"Modifier le projet")) return;
+    QSqlQuery q(QSqlDatabase::database("hackflow_oracle"));
+    q.prepare("UPDATE INES.PROJET SET TITRE=:t, DESCRIPTION=:d, STATUT=:s, DATE_DEBUT=:sd, DATE_RENDU=:ed, EQUIPE=:e WHERE ID_PROJET=:id");
+    q.bindValue(":t",p.name); q.bindValue(":d",p.desc); q.bindValue(":s",p.status);
+    q.bindValue(":sd",p.start); q.bindValue(":ed",p.end); q.bindValue(":e",p.team); q.bindValue(":id",id);
+    if(!q.exec()) { QMessageBox::critical(this,"Oracle",q.lastError().text()); return; }
+    if(q.numRowsAffected()==0) { QMessageBox::warning(this,"Oracle","Aucune ligne modifiée dans la base."); return; }
+    const TeamStyle ts=teamStyle(p.team); p.icon=ts.icon; p.color=ts.color; m_projects[i]=p;
+    addActivity("a mis à jour le projet "+p.name); refresh();
 }
 
 void MainWindow::setStatus(int id, const QString &status)
 {
-    const int i = indexOfProject(id);
-    if (i < 0) return;
-    m_projects[i].status = status;
-    if (status == kDone) m_projects[i].progress = 100;
-    addActivity("a changé le statut de " + m_projects[i].name + " : " + status);
-    refresh();
+    const int i=indexOfProject(id); if(i<0) return;
+    QSqlQuery q(QSqlDatabase::database("hackflow_oracle"));
+    q.prepare("UPDATE INES.PROJET SET STATUT=:s WHERE ID_PROJET=:id"); q.bindValue(":s",status); q.bindValue(":id",id);
+    if(!q.exec()) { QMessageBox::critical(this,"Oracle",q.lastError().text()); return; }
+    m_projects[i].status=status; if(status==kDone) m_projects[i].progress=100;
+    addActivity("a changé le statut de "+m_projects[i].name+" : "+status); refresh();
 }
 
 void MainWindow::deleteProject(int id)
 {
-    const int i = indexOfProject(id);
-    if (i < 0) return;
-    const QString name = m_projects[i].name;
-    if (QMessageBox::question(this, "Supprimer le projet",
-                              "Voulez-vous vraiment supprimer le projet « " + name + " » ?")
-        != QMessageBox::Yes)
-        return;
-    m_projects.removeAt(i);
-    addActivity("a supprimé le projet " + name);
-    refresh();
+    const int i=indexOfProject(id); if(i<0) return; const QString name=m_projects[i].name;
+    if(QMessageBox::question(this,"Supprimer le projet","Voulez-vous vraiment supprimer le projet « "+name+" » ?")!=QMessageBox::Yes) return;
+    QSqlQuery q(QSqlDatabase::database("hackflow_oracle")); q.prepare("DELETE FROM INES.PROJET WHERE ID_PROJET=:id"); q.bindValue(":id",id);
+    if(!q.exec()) { QMessageBox::critical(this,"Oracle",q.lastError().text()); return; }
+    if(q.numRowsAffected()==0) { QMessageBox::warning(this,"Oracle","Projet introuvable dans la base."); return; }
+    m_projects.removeAt(i); addActivity("a supprimé le projet "+name); refresh();
 }
-
 void MainWindow::showProject(int id)
 {
     const int i = indexOfProject(id);
@@ -1154,3 +1122,5 @@ void MainWindow::showProject(int id)
     box.addButton("Fermer", QMessageBox::AcceptRole);
     box.exec();
 }
+
+

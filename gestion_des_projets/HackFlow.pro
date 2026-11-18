@@ -1,4 +1,4 @@
-QT += widgets
+QT += widgets sql
 TEMPLATE = app
 TARGET = HackFlow
 CONFIG += c++11
@@ -9,3 +9,4 @@ SOURCES += main.cpp \
 HEADERS += mainwindow.h
 
 RESOURCES += resources.qrc
+

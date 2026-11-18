@@ -77,7 +77,7 @@ private:
     QWidget *makeCard(const Project &p);
 
     // logique
-    void seedData();
+    bool loadProjectsFromDatabase();
     void refresh();
     void refreshList();
     void refreshStats();
@@ -123,3 +123,4 @@ private:
 };
 
 #endif // MAINWINDOW_H
+

@@ -1,0 +1,17 @@
+# Qt / C++ build outputs
+build/
+debug/
+release/
+*.o
+*.obj
+*.exe
+*.dll
+*.a
+Makefile
+Makefile.*
+ui_*.h
+moc_*.cpp
+*.qmake.stash
+.qtcreator/
+*.user
+*.user.*
