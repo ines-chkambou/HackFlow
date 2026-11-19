@@ -1,5 +1,6 @@
 #include "evaluationprojets.h"
 #include "evaluation.h"
+#include "sqlutils.h"
 #include "uihelpers.h"
 
 #include <QAction>
@@ -26,6 +27,7 @@
 #include <QPushButton>
 #include <QScrollArea>
 #include <QSignalBlocker>
+#include <QSqlDatabase>
 #include <QSqlError>
 #include <QSqlQuery>
 #include <QTableWidget>
@@ -41,7 +43,7 @@ const int kColCoche = 0, kColProjet = 1, kColEquipe = 2, kColJury = 3, kColDate 
           kColNote = 5, kColStatut = 6, kColActions = 7;
 
 const int kNoteMax = 20;
-const int kCommentaireMax = 500;
+const int kCommentaireMax = Evaluation::CommentaireMax;
 
 // Valeurs affichées par défaut dans la grille (celles de la maquette)
 const double kNotesParDefaut[EvalProjet::NbCriteres] = {16, 18, 14, 17, 16, 15, 17};
@@ -206,7 +208,7 @@ QVector<EvalProjet> EvaluationProjetsPage::lireEvaluations()
     QVector<EvalProjet> res;
     QSqlQuery q;
     if (!q.exec(QString(kSelectEval) + "ORDER BY e.date_evaluation DESC, e.id_evaluation DESC")) {
-        qWarning() << "Erreur lecture évaluations:" << q.lastError().text();
+        signalerErreurSql(QStringLiteral("Impossible de charger les évaluations"), q.lastError());
         return res;
     }
     while (q.next()) res.append(depuisRequete(q));
@@ -218,41 +220,40 @@ EvalProjet EvaluationProjetsPage::lireEvaluation(int id)
     QSqlQuery q;
     q.prepare(QString(kSelectEval) + "WHERE e.id_evaluation = ?");
     q.addBindValue(id);
-    if (q.exec() && q.next()) return depuisRequete(q);
+    if (!q.exec()) {
+        signalerErreurSql(QStringLiteral("Impossible de lire l'évaluation #%1").arg(id), q.lastError());
+        return EvalProjet();
+    }
+    if (q.next()) return depuisRequete(q);
     return EvalProjet();
 }
 
-bool EvaluationProjetsPage::enregistrer(EvalProjet &e)
+bool EvaluationProjetsPage::enregistrer(EvalProjet &e, QString *messageErreur)
 {
-    QSqlQuery q;
-    if (e.id < 0) {
-        q.prepare("INSERT INTO EVALUATION (id_jury, id_projet, note, critere_innovation, critere_technique, "
-                  "critere_presentation, critere_pitch, crit_qualite, crit_impact, crit_business, crit_equipe, "
-                  "commentaire, date_evaluation) VALUES (?, ?, ?, ?, ?, ?, 0, ?, ?, ?, ?, ?, ?)");
-    } else {
-        q.prepare("UPDATE EVALUATION SET id_jury = ?, id_projet = ?, note = ?, critere_innovation = ?, "
-                  "critere_technique = ?, critere_presentation = ?, crit_qualite = ?, crit_impact = ?, "
-                  "crit_business = ?, crit_equipe = ?, commentaire = ?, date_evaluation = ? WHERE id_evaluation = ?");
-    }
-    q.addBindValue(e.idJury);
-    q.addBindValue(e.idProjet);
-    q.addBindValue(e.note);
-    q.addBindValue(e.criteres[1]);   // innovation
-    q.addBindValue(e.criteres[2]);   // faisabilité (colonne « technique »)
-    q.addBindValue(e.criteres[3]);   // présentation
-    q.addBindValue(e.criteres[0]);   // qualité
-    q.addBindValue(e.criteres[4]);   // impact
-    q.addBindValue(e.criteres[5]);   // business model
-    q.addBindValue(e.criteres[6]);   // équipe
-    q.addBindValue(e.commentaire.trimmed());
-    q.addBindValue(e.dateHeure);
-    if (e.id >= 0) q.addBindValue(e.id);
-    if (!q.exec()) {
-        qWarning() << "Erreur enregistrement évaluation:" << q.lastError().text();
-        return false;
-    }
-    QSqlQuery().exec("COMMIT");
-    if (e.id < 0) e.id = q.lastInsertId().toInt();
+    if (messageErreur) messageErreur->clear();
+
+    // Une seule écriture EVALUATION pour les deux formulaires : la grille à 7 critères
+    // renseigne crit_* et laisse critere_pitch être préservé lors d'une modification.
+    Evaluation eval;
+    eval.setId(e.id);
+    eval.setIdJury(e.idJury);
+    eval.setIdProjet(e.idProjet);
+    eval.setNote(e.note);
+    eval.setCritereInnovation(e.criteres[1]);
+    eval.setCritereTechnique(e.criteres[2]);
+    eval.setCriterePresentation(e.criteres[3]);
+    eval.setCritQualite(e.criteres[0]);
+    eval.setCritImpact(e.criteres[4]);
+    eval.setCritBusiness(e.criteres[5]);
+    eval.setCritEquipe(e.criteres[6]);
+    eval.setCriteresEtendus(true);
+    eval.setCommentaire(e.commentaire.trimmed().left(Evaluation::CommentaireMax));
+    eval.setDateEvaluation(e.dateHeure);
+
+    const bool modification = e.id >= 0;
+    int idCree = e.id;
+    if (!Evaluation::enregistrer(eval, modification, &idCree, messageErreur)) return false;
+    e.id = idCree;
     return true;
 }
 
@@ -635,7 +636,7 @@ QWidget *EvaluationProjetsPage::construireCarteFormulaire()
     QPalette pal = m_txtCommentaire->palette();
     pal.setColor(QPalette::PlaceholderText, QColor("#7F9BD0"));
     m_txtCommentaire->setPalette(pal);
-    m_lblCompteur = new QLabel("0/500", m_txtCommentaire);
+    m_lblCompteur = new QLabel(QString("0/%1").arg(kCommentaireMax), m_txtCommentaire);
     m_lblCompteur->setObjectName("lblCompteurCommentaire");
     m_lblCompteur->setStyleSheet("color: #7F9BD0; font-size: 9px; background: transparent; border: none;");
     m_lblCompteur->setAttribute(Qt::WA_TransparentForMouseEvents);
@@ -917,19 +918,27 @@ void EvaluationProjetsPage::rechargerListesFormulaire()
         m_cbEquipe->clear();
         m_cbJury->clear();
 
-        QSqlQuery q("SELECT id_projet, titre, nom_equipe, COALESCE(description, '') FROM PROJET ORDER BY id_projet");
-        QStringList equipes;
-        while (q.next()) {
-            const QString desc = q.value(3).toString();
-            m_cbProjet->addItem(desc.isEmpty() ? q.value(1).toString() : q.value(1).toString() + " - " + desc, q.value(0).toInt());
-            m_cbProjet->setItemData(m_cbProjet->count() - 1, q.value(2).toString(), Qt::UserRole + 1);
-            if (!equipes.contains(q.value(2).toString())) equipes << q.value(2).toString();
+        QSqlQuery q;
+        if (!q.exec(QStringLiteral("SELECT id_projet, titre, nom_equipe, COALESCE(description, '') FROM PROJET ORDER BY id_projet"))) {
+            signalerErreurSql(QStringLiteral("Impossible de charger les projets du formulaire"), q.lastError());
+        } else {
+            QStringList equipes;
+            while (q.next()) {
+                const QString desc = q.value(3).toString();
+                m_cbProjet->addItem(desc.isEmpty() ? q.value(1).toString() : q.value(1).toString() + " - " + desc, q.value(0).toInt());
+                m_cbProjet->setItemData(m_cbProjet->count() - 1, q.value(2).toString(), Qt::UserRole + 1);
+                if (!equipes.contains(q.value(2).toString())) equipes << q.value(2).toString();
+            }
+            std::sort(equipes.begin(), equipes.end());
+            for (const QString &e : equipes) m_cbEquipe->addItem(e, e);
         }
-        std::sort(equipes.begin(), equipes.end());
-        for (const QString &e : equipes) m_cbEquipe->addItem(e, e);
 
-        QSqlQuery qj("SELECT id_jury, nom, prenom FROM JURY ORDER BY nom, prenom");
-        while (qj.next()) m_cbJury->addItem(qj.value(1).toString() + " " + qj.value(2).toString(), qj.value(0).toInt());
+        QSqlQuery qj;
+        if (!qj.exec(QStringLiteral("SELECT id_jury, nom, prenom FROM JURY ORDER BY nom, prenom"))) {
+            signalerErreurSql(QStringLiteral("Impossible de charger les jurés du formulaire"), qj.lastError());
+        } else {
+            while (qj.next()) m_cbJury->addItem(qj.value(1).toString() + " " + qj.value(2).toString(), qj.value(0).toInt());
+        }
 
         // Retour aux sélections précédentes si elles existent encore
         int i = m_cbProjet->findData(projetCourant);
@@ -953,10 +962,18 @@ void EvaluationProjetsPage::rechargerFiltres()
     m_cbFiltreJury->addItem("Tous les jurés", -1);
     m_cbFiltreEquipe->addItem("Toutes les équipes", QString());
 
-    QSqlQuery qj("SELECT id_jury, nom, prenom FROM JURY ORDER BY nom, prenom");
-    while (qj.next()) m_cbFiltreJury->addItem(qj.value(1).toString() + " " + qj.value(2).toString(), qj.value(0).toInt());
-    QSqlQuery qe("SELECT DISTINCT nom_equipe FROM PROJET ORDER BY nom_equipe");
-    while (qe.next()) m_cbFiltreEquipe->addItem(qe.value(0).toString(), qe.value(0).toString());
+    QSqlQuery qj;
+    if (!qj.exec(QStringLiteral("SELECT id_jury, nom, prenom FROM JURY ORDER BY nom, prenom"))) {
+        signalerErreurSql(QStringLiteral("Impossible de charger le filtre des jurés"), qj.lastError());
+    } else {
+        while (qj.next()) m_cbFiltreJury->addItem(qj.value(1).toString() + " " + qj.value(2).toString(), qj.value(0).toInt());
+    }
+    QSqlQuery qe;
+    if (!qe.exec(QStringLiteral("SELECT DISTINCT nom_equipe FROM PROJET ORDER BY nom_equipe"))) {
+        signalerErreurSql(QStringLiteral("Impossible de charger le filtre des équipes"), qe.lastError());
+    } else {
+        while (qe.next()) m_cbFiltreEquipe->addItem(qe.value(0).toString(), qe.value(0).toString());
+    }
 
     int i = m_cbFiltreJury->findText(jury);
     m_cbFiltreJury->setCurrentIndex(i >= 0 ? i : 0);
@@ -1333,7 +1350,7 @@ void EvaluationProjetsPage::chargerDansFormulaire(const EvalProjet &e)
         m_spins[k]->setValue(e.criteres[k]);
     }
     surNoteChange();
-    m_txtCommentaire->setPlainText(e.commentaire);
+    m_txtCommentaire->setPlainText(e.commentaire.left(kCommentaireMax));
 }
 
 void EvaluationProjetsPage::editer(int id)
@@ -1413,8 +1430,11 @@ void EvaluationProjetsPage::enregistrerEvaluation()
     e.dateHeure = m_dateEval->date().toString("yyyy-MM-dd") + " " + heure.toString("hh:mm");
 
     const bool modification = m_idEnEdition >= 0;
-    if (!enregistrer(e)) {
-        QMessageBox::critical(this, "Erreur", "L'enregistrement de l'évaluation dans la base de données a échoué :\n" + QSqlDatabase::database().lastError().text());
+    QString erreurSql;
+    if (!enregistrer(e, &erreurSql)) {
+        QMessageBox::critical(this, "Erreur",
+                              "L'enregistrement de l'évaluation dans la base de données a échoué :\n" +
+                              (erreurSql.isEmpty() ? QStringLiteral("Erreur inconnue.") : erreurSql));
         return;
     }
     QMessageBox::information(this, "Succès",

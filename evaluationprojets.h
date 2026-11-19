@@ -68,7 +68,7 @@ public:
     // ---- Accès aux données (statiques : testables sans l'interface) ----
     static QVector<EvalProjet> lireEvaluations();
     static EvalProjet lireEvaluation(int id);
-    static bool enregistrer(EvalProjet &e);                    // id < 0 : ajout, sinon modification
+    static bool enregistrer(EvalProjet &e, QString *messageErreur = nullptr); // id < 0 : ajout, sinon modification
     static bool supprimer(int id);
 
 signals:

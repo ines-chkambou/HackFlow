@@ -57,10 +57,20 @@ private:
     double critereTechnique;
     double criterePresentation;
     double criterePitch;
+    double critQualite;
+    double critImpact;
+    double critBusiness;
+    double critEquipe;
+    // Vrai lorsque les quatre colonnes crit_* sont gérées par la grille à 7 critères.
+    // Dans ce cas, critere_pitch n'est pas géré par le formulaire et doit être préservé.
+    bool criteresEtendus;
     QString commentaire;
     QString dateEvaluation;
 
 public:
+    // Longueur maximale de la colonne Oracle EVALUATION.commentaire (VARCHAR2(1000 CHAR)).
+    static const int CommentaireMax = 1000;
+
     Evaluation();
     Evaluation(int id, int idJury, int idProjet, double note,
                double innovation, double technique, double presentation, double pitch,
@@ -78,6 +88,11 @@ public:
     double getCritereTechnique() const { return critereTechnique; }
     double getCriterePresentation() const { return criterePresentation; }
     double getCriterePitch() const { return criterePitch; }
+    double getCritQualite() const { return critQualite; }
+    double getCritImpact() const { return critImpact; }
+    double getCritBusiness() const { return critBusiness; }
+    double getCritEquipe() const { return critEquipe; }
+    bool hasCriteresEtendus() const { return criteresEtendus; }
     QString getCommentaire() const { return commentaire; }
     QString getDateEvaluation() const { return dateEvaluation; }
 
@@ -89,6 +104,11 @@ public:
     void setCritereTechnique(double val) { critereTechnique = val; }
     void setCriterePresentation(double val) { criterePresentation = val; }
     void setCriterePitch(double val) { criterePitch = val; }
+    void setCritQualite(double val) { critQualite = val; }
+    void setCritImpact(double val) { critImpact = val; }
+    void setCritBusiness(double val) { critBusiness = val; }
+    void setCritEquipe(double val) { critEquipe = val; }
+    void setCriteresEtendus(bool val) { criteresEtendus = val; }
     void setCommentaire(const QString &val) { commentaire = val; }
     void setDateEvaluation(const QString &val) { dateEvaluation = val; }
 
@@ -96,9 +116,18 @@ public:
     bool valider(QString &messageErreur) const;
     static bool evaluationExiste(int idJury, int idProjet, int exclureId = -1);
 
+    // Écriture unique des 13 colonnes métier (hors clé primaire) :
+    // id_jury, id_projet, note, critere_innovation, critere_technique,
+    // critere_presentation, critere_pitch, commentaire, date_evaluation,
+    // crit_qualite, crit_impact, crit_business, crit_equipe.
+    // Les colonnes non gérées par le formulaire sont NULL à l'insertion et
+    // préservées lors d'une modification.
+    static bool enregistrer(const Evaluation &e, bool modification,
+                            int *idCree = nullptr, QString *messageErreur = nullptr);
+
     // CRUD
-    bool ajouter();
-    bool modifier(int id);
+    bool ajouter(QString *messageErreur = nullptr);
+    bool modifier(int id, QString *messageErreur = nullptr);
     static bool supprimer(int id);
     static Evaluation obtenirParId(int id);
 

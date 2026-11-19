@@ -1,6 +1,10 @@
 #include "evaluation.h"
+#include "sqlutils.h"
+#include <QSqlDatabase>
 #include <QSqlError>
 #include <QDateTime>
+#include <QFile>
+#include <QFileInfo>
 #include <QPrinter>
 #include <QPageSize>
 #include <QPageLayout>
@@ -13,7 +17,9 @@
 Evaluation::Evaluation()
     : id(-1), idJury(-1), idProjet(-1), note(0.0),
       critereInnovation(0.0), critereTechnique(0.0),
-      criterePresentation(0.0), criterePitch(0.0)
+      criterePresentation(0.0), criterePitch(0.0),
+      critQualite(0.0), critImpact(0.0), critBusiness(0.0), critEquipe(0.0),
+      criteresEtendus(false)
 {
     dateEvaluation = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm");
 }
@@ -24,6 +30,8 @@ Evaluation::Evaluation(int id, int idJury, int idProjet, double note,
     : id(id), idJury(idJury), idProjet(idProjet), note(note),
       critereInnovation(innovation), critereTechnique(technique),
       criterePresentation(presentation), criterePitch(pitch),
+      critQualite(0.0), critImpact(0.0), critBusiness(0.0), critEquipe(0.0),
+      criteresEtendus(false),
       commentaire(commentaire), dateEvaluation(dateEvaluation)
 {
 }
@@ -34,6 +42,8 @@ Evaluation::Evaluation(int idJury, int idProjet, double note,
     : id(-1), idJury(idJury), idProjet(idProjet), note(note),
       critereInnovation(innovation), critereTechnique(technique),
       criterePresentation(presentation), criterePitch(pitch),
+      critQualite(0.0), critImpact(0.0), critBusiness(0.0), critEquipe(0.0),
+      criteresEtendus(false),
       commentaire(commentaire)
 {
     dateEvaluation = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm");
@@ -59,8 +69,27 @@ bool Evaluation::valider(QString &messageErreur) const
     if (critereInnovation < 0.0 || critereInnovation > 20.0 ||
         critereTechnique < 0.0 || critereTechnique > 20.0 ||
         criterePresentation < 0.0 || criterePresentation > 20.0 ||
-        criterePitch < 0.0 || criterePitch > 20.0) {
+        (!criteresEtendus && (criterePitch < 0.0 || criterePitch > 20.0))) {
         messageErreur = "Tous les sous-critères doivent être compris entre 0.0 et 20.0.";
+        return false;
+    }
+
+    if (criteresEtendus &&
+        (critQualite < 0.0 || critQualite > 20.0 ||
+         critImpact < 0.0 || critImpact > 20.0 ||
+         critBusiness < 0.0 || critBusiness > 20.0 ||
+         critEquipe < 0.0 || critEquipe > 20.0)) {
+        messageErreur = "Les critères qualité, impact, business et équipe doivent être compris entre 0.0 et 20.0.";
+        return false;
+    }
+
+    if (commentaire.size() > CommentaireMax) {
+        messageErreur = QString("Le commentaire ne peut pas dépasser %1 caractères.").arg(CommentaireMax);
+        return false;
+    }
+
+    if (!dateEvaluation.trimmed().isEmpty() && dateEvaluation.size() > 16) {
+        messageErreur = "La date d'évaluation doit respecter le format yyyy-MM-dd hh:mm.";
         return false;
     }
 
@@ -87,60 +116,230 @@ bool Evaluation::evaluationExiste(int idJury, int idProjet, int exclureId)
         q.addBindValue(idProjet);
     }
 
-    if (q.exec() && q.next()) {
+    if (!q.exec()) {
+        signalerErreurSql(QStringLiteral("Impossible de vérifier l'existence de l'évaluation"), q.lastError());
+        return false;
+    }
+    if (q.next()) {
         return q.value(0).toInt() > 0;
     }
     return false;
 }
 
-bool Evaluation::ajouter()
+bool Evaluation::enregistrer(const Evaluation &e, bool modification,
+                             int *idCree, QString *messageErreur)
 {
-    QSqlQuery q;
-    q.prepare("INSERT INTO EVALUATION (id_jury, id_projet, note, critere_innovation, critere_technique, "
-              "critere_presentation, critere_pitch, commentaire, date_evaluation) "
-              "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
-    q.addBindValue(idJury);
-    q.addBindValue(idProjet);
-    q.addBindValue(note);
-    q.addBindValue(critereInnovation);
-    q.addBindValue(critereTechnique);
-    q.addBindValue(criterePresentation);
-    q.addBindValue(criterePitch);
-    q.addBindValue(commentaire.trimmed());
-    q.addBindValue(QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm"));
+    if (idCree) *idCree = modification ? e.id : -1;
+    if (messageErreur) messageErreur->clear();
 
-    if (q.exec()) {
-        QSqlQuery().exec("COMMIT");
-        return true;
+    if (modification && e.id <= 0) {
+        if (messageErreur) *messageErreur = QStringLiteral("Identifiant d'évaluation invalide pour la modification.");
+        return false;
     }
-    qWarning() << "Erreur ajout Evaluation:" << q.lastError().text();
-    return false;
+
+    Evaluation copie = e;
+    if (!modification) copie.id = -1;
+    copie.commentaire = copie.commentaire.trimmed();
+
+    QSqlDatabase db = QSqlDatabase::database();
+    const QString pilote = db.driverName().toUpper();
+    const bool oracle = pilote.contains(QLatin1String("QODBC"))
+                        || pilote.contains(QLatin1String("QORA"))
+                        || pilote.contains(QLatin1String("ORACLE"));
+
+    QVariant pitch;
+    QVariant qualite;
+    QVariant impact;
+    QVariant business;
+    QVariant equipe;
+    QString date = copie.dateEvaluation.trimmed();
+
+    if (modification) {
+        QSqlQuery existante;
+        existante.prepare("SELECT critere_pitch, crit_qualite, crit_impact, crit_business, "
+                          "crit_equipe, date_evaluation FROM EVALUATION WHERE id_evaluation = ?");
+        existante.addBindValue(copie.id);
+        if (!existante.exec()) {
+            const QString message = QStringLiteral("Impossible de relire l'évaluation à modifier : %1")
+                                        .arg(existante.lastError().text());
+            qWarning() << "Erreur relecture évaluation:" << existante.lastError().text();
+            if (messageErreur) *messageErreur = message;
+            return false;
+        }
+        if (!existante.next()) {
+            if (messageErreur) *messageErreur = QStringLiteral("L'évaluation à modifier n'existe plus.");
+            return false;
+        }
+
+        if (date.isEmpty()) date = existante.value(5).toString();
+        pitch = copie.criteresEtendus ? existante.value(0) : QVariant(copie.criterePitch);
+        qualite = copie.criteresEtendus ? QVariant(copie.critQualite) : existante.value(1);
+        impact = copie.criteresEtendus ? QVariant(copie.critImpact) : existante.value(2);
+        business = copie.criteresEtendus ? QVariant(copie.critBusiness) : existante.value(3);
+        equipe = copie.criteresEtendus ? QVariant(copie.critEquipe) : existante.value(4);
+    } else {
+        if (date.isEmpty()) date = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm");
+        pitch = copie.criteresEtendus ? QVariant() : QVariant(copie.criterePitch);
+        qualite = copie.criteresEtendus ? QVariant(copie.critQualite) : QVariant();
+        impact = copie.criteresEtendus ? QVariant(copie.critImpact) : QVariant();
+        business = copie.criteresEtendus ? QVariant(copie.critBusiness) : QVariant();
+        equipe = copie.criteresEtendus ? QVariant(copie.critEquipe) : QVariant();
+    }
+    copie.dateEvaluation = date;
+
+    QString validation;
+    if (!copie.valider(validation)) {
+        if (messageErreur) *messageErreur = validation;
+        return false;
+    }
+
+    int id = copie.id;
+    if (!modification && oracle) {
+        QSqlQuery sequence;
+        if (!sequence.exec(QStringLiteral("SELECT EVAL_SEQ.NEXTVAL FROM DUAL")) || !sequence.next()) {
+            const QString message = QStringLiteral("Impossible de lire EVAL_SEQ.NEXTVAL : %1")
+                                        .arg(sequence.lastError().text());
+            qWarning() << "Erreur lecture EVAL_SEQ.NEXTVAL:" << sequence.lastError().text();
+            if (messageErreur) *messageErreur = message;
+            return false;
+        }
+        id = sequence.value(0).toInt();
+        if (id <= 0) {
+            if (messageErreur) *messageErreur = QStringLiteral("EVAL_SEQ.NEXTVAL a renvoyé un identifiant invalide.");
+            return false;
+        }
+    }
+
+    QSqlQuery q;
+    if (!db.transaction()) {
+        const QString message = QStringLiteral("Impossible de démarrer la transaction d'enregistrement de l'évaluation : %1")
+                                    .arg(db.lastError().text());
+        qWarning() << "Erreur ouverture transaction évaluation:" << db.lastError().text();
+        if (messageErreur) *messageErreur = message;
+        return false;
+    }
+    if (!modification) {
+        if (oracle) {
+            q.prepare("INSERT INTO EVALUATION (id_evaluation, id_jury, id_projet, note, "
+                      "critere_innovation, critere_technique, critere_presentation, critere_pitch, "
+                      "commentaire, date_evaluation, crit_qualite, crit_impact, crit_business, crit_equipe) "
+                      "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            q.addBindValue(id);
+        } else {
+            q.prepare("INSERT INTO EVALUATION (id_jury, id_projet, note, "
+                      "critere_innovation, critere_technique, critere_presentation, critere_pitch, "
+                      "commentaire, date_evaluation, crit_qualite, crit_impact, crit_business, crit_equipe) "
+                      "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        }
+    } else {
+        q.prepare("UPDATE EVALUATION SET id_jury = ?, id_projet = ?, note = ?, "
+                  "critere_innovation = ?, critere_technique = ?, critere_presentation = ?, "
+                  "critere_pitch = ?, commentaire = ?, date_evaluation = ?, "
+                  "crit_qualite = ?, crit_impact = ?, crit_business = ?, crit_equipe = ? "
+                  "WHERE id_evaluation = ?");
+    }
+
+    if (q.lastError().isValid()) {
+        const QString message = QStringLiteral("Impossible de préparer l'enregistrement de l'évaluation : %1")
+                                    .arg(q.lastError().text());
+        qWarning() << "Erreur préparation enregistrement évaluation:" << q.lastError().text();
+        if (!db.rollback()) qWarning() << "Erreur rollback évaluation:" << db.lastError().text();
+        if (messageErreur) *messageErreur = message;
+        return false;
+    }
+
+    q.addBindValue(copie.idJury);
+    q.addBindValue(copie.idProjet);
+    q.addBindValue(copie.note);
+    q.addBindValue(copie.critereInnovation);
+    q.addBindValue(copie.critereTechnique);
+    q.addBindValue(copie.criterePresentation);
+    q.addBindValue(pitch);
+    q.addBindValue(copie.commentaire);
+    q.addBindValue(copie.dateEvaluation);
+    q.addBindValue(qualite);
+    q.addBindValue(impact);
+    q.addBindValue(business);
+    q.addBindValue(equipe);
+    if (modification) q.addBindValue(id);
+
+    if (!q.exec()) {
+        const QString message = QStringLiteral("Impossible d'enregistrer l'évaluation : %1")
+                                    .arg(q.lastError().text());
+        qWarning() << "Erreur enregistrement évaluation:" << q.lastError().text();
+        if (!db.rollback()) qWarning() << "Erreur rollback évaluation:" << db.lastError().text();
+        if (messageErreur) *messageErreur = message;
+        return false;
+    }
+
+    if (!modification && !oracle) {
+        const QVariant dernierId = q.lastInsertId();
+        if (!dernierId.isValid() || dernierId.toInt() <= 0) {
+            const QString message = QStringLiteral(
+                "L'évaluation a été enregistrée, mais son identifiant n'a pas pu être récupéré. "
+                "Vérifiez la liste avant de réessayer pour éviter un doublon.");
+            qWarning() << "Erreur récupération identifiant évaluation:" << dernierId;
+            if (!db.rollback()) qWarning() << "Erreur rollback évaluation:" << db.lastError().text();
+            if (messageErreur) *messageErreur = message;
+            return false;
+        }
+        id = dernierId.toInt();
+    }
+
+    if (!db.commit()) {
+        const QString message = QStringLiteral("Impossible de valider l'enregistrement de l'évaluation : %1")
+                                    .arg(db.lastError().text());
+        qWarning() << "Erreur validation transaction évaluation:" << db.lastError().text();
+        if (!db.rollback()) qWarning() << "Erreur rollback évaluation:" << db.lastError().text();
+        if (messageErreur) *messageErreur = message;
+        return false;
+    }
+
+    if (idCree) *idCree = id;
+    return true;
 }
 
-bool Evaluation::modifier(int id)
+bool Evaluation::ajouter(QString *messageErreur)
 {
-    QSqlQuery q;
-    q.prepare("UPDATE EVALUATION SET id_jury = ?, id_projet = ?, note = ?, "
-              "critere_innovation = ?, critere_technique = ?, "
-              "critere_presentation = ?, critere_pitch = ?, "
-              "commentaire = ?, date_evaluation = ? WHERE id_evaluation = ?");
-    q.addBindValue(idJury);
-    q.addBindValue(idProjet);
-    q.addBindValue(note);
-    q.addBindValue(critereInnovation);
-    q.addBindValue(critereTechnique);
-    q.addBindValue(criterePresentation);
-    q.addBindValue(criterePitch);
-    q.addBindValue(commentaire.trimmed());
-    q.addBindValue(QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm"));
-    q.addBindValue(id);
+    id = -1;
+    int idCree = -1;
+    if (!enregistrer(*this, false, &idCree, messageErreur)) return false;
+    id = idCree;
+    return true;
+}
 
-    if (q.exec()) {
-        this->id = id;
-        QSqlQuery().exec("COMMIT");
-        return true;
+bool Evaluation::modifier(int id, QString *messageErreur)
+{
+    if (id <= 0) {
+        if (messageErreur) *messageErreur = QStringLiteral("Identifiant d'évaluation invalide.");
+        return false;
     }
-    return false;
+
+    Evaluation e = *this;
+    e.id = id;
+
+    // Conserver impérativement la date d'origine : une modification ne doit pas
+    // réhorodater l'évaluation.
+    QSqlQuery dateExistante;
+    dateExistante.prepare("SELECT date_evaluation FROM EVALUATION WHERE id_evaluation = ?");
+    dateExistante.addBindValue(id);
+    if (!dateExistante.exec()) {
+        const QString message = QStringLiteral("Impossible de relire la date de l'évaluation : %1")
+                                    .arg(dateExistante.lastError().text());
+        qWarning() << "Erreur relecture date évaluation:" << dateExistante.lastError().text();
+        if (messageErreur) *messageErreur = message;
+        return false;
+    }
+    if (!dateExistante.next()) {
+        if (messageErreur) *messageErreur = QStringLiteral("L'évaluation à modifier n'existe plus.");
+        return false;
+    }
+    e.dateEvaluation = dateExistante.value(0).toString();
+
+    if (!enregistrer(e, true, nullptr, messageErreur)) return false;
+    this->id = id;
+    this->dateEvaluation = e.dateEvaluation;
+    return true;
 }
 
 bool Evaluation::supprimer(int id)
@@ -148,8 +347,10 @@ bool Evaluation::supprimer(int id)
     QSqlQuery q;
     q.prepare("DELETE FROM EVALUATION WHERE id_evaluation = ?");
     q.addBindValue(id);
-    if (!q.exec()) return false;
-    QSqlQuery().exec("COMMIT");
+    if (!q.exec()) {
+        qWarning() << "Erreur suppression Evaluation:" << q.lastError().text();
+        return false;
+    }
     return true;
 }
 
@@ -157,22 +358,33 @@ Evaluation Evaluation::obtenirParId(int id)
 {
     QSqlQuery q;
     q.prepare("SELECT id_evaluation, id_jury, id_projet, note, critere_innovation, "
-              "critere_technique, critere_presentation, critere_pitch, commentaire, date_evaluation "
+              "critere_technique, critere_presentation, critere_pitch, commentaire, date_evaluation, "
+              "crit_qualite, crit_impact, crit_business, crit_equipe "
               "FROM EVALUATION WHERE id_evaluation = ?");
     q.addBindValue(id);
-    if (q.exec() && q.next()) {
-        return Evaluation(q.value(0).toInt(),
-                          q.value(1).toInt(),
-                          q.value(2).toInt(),
-                          q.value(3).toDouble(),
-                          q.value(4).toDouble(),
-                          q.value(5).toDouble(),
-                          q.value(6).toDouble(),
-                          q.value(7).toDouble(),
-                          q.value(8).toString(),
-                          q.value(9).toString());
+    if (!q.exec()) {
+        signalerErreurSql(QStringLiteral("Impossible de lire l'évaluation #%1").arg(id), q.lastError());
+        return Evaluation();
     }
-    return Evaluation();
+    if (!q.next()) return Evaluation();
+
+    Evaluation e;
+    e.id = q.value(0).toInt();
+    e.idJury = q.value(1).toInt();
+    e.idProjet = q.value(2).toInt();
+    e.note = q.value(3).toDouble();
+    e.critereInnovation = q.value(4).toDouble();
+    e.critereTechnique = q.value(5).toDouble();
+    e.criterePresentation = q.value(6).toDouble();
+    e.criterePitch = q.value(7).isNull() ? 0.0 : q.value(7).toDouble();
+    e.commentaire = q.value(8).toString();
+    e.dateEvaluation = q.value(9).toString();
+    e.critQualite = q.value(10).isNull() ? 0.0 : q.value(10).toDouble();
+    e.critImpact = q.value(11).isNull() ? 0.0 : q.value(11).toDouble();
+    e.critBusiness = q.value(12).isNull() ? 0.0 : q.value(12).toDouble();
+    e.critEquipe = q.value(13).isNull() ? 0.0 : q.value(13).toDouble();
+    e.criteresEtendus = true;
+    return e;
 }
 
 QSqlQueryModel* Evaluation::afficher()
@@ -182,19 +394,28 @@ QSqlQueryModel* Evaluation::afficher()
                   "p.titre AS Projet, "
                   "p.nom_equipe AS Equipe, "
                   "(j.prenom || ' ' || j.nom) AS Jure, "
-                  "j.role AS Role, "
+                  "j.role AS RoleJury, "
                   "e.note AS NoteGlobale, "
                   "e.critere_innovation AS Innovation, "
                   "e.critere_technique AS Technique, "
                   "e.critere_presentation AS Presentation, "
                   "e.commentaire AS Commentaire, "
-                  "e.date_evaluation AS Date "
+                  "e.date_evaluation AS DateEvaluation, "
+                  "e.critere_pitch AS Pitch, "
+                  "e.crit_qualite AS Qualite, "
+                  "e.crit_impact AS Impact, "
+                  "e.crit_business AS Business, "
+                  "e.crit_equipe AS CritEquipe "
                   "FROM EVALUATION e "
                   "JOIN JURY j ON e.id_jury = j.id_jury "
                   "JOIN PROJET p ON e.id_projet = p.id_projet "
                   "ORDER BY e.date_evaluation DESC";
 
     model->setQuery(req);
+    if (model->lastError().isValid()) {
+        signalerErreurSql(QStringLiteral("Impossible de charger la liste des évaluations"),
+                          model->lastError());
+    }
     return model;
 }
 
@@ -203,18 +424,21 @@ QVector<ClassementProjet> Evaluation::calculerClassementAutomatique()
     QVector<ClassementProjet> classement;
 
     // Récupérer les moyennes pour chaque projet
-    QSqlQuery q(
-        "SELECT p.id_projet, p.titre, p.nom_equipe, "
-        "AVG(e.note) AS moy_note, "
-        "AVG(e.critere_innovation) AS moy_inno, "
-        "AVG(e.critere_technique) AS moy_tech, "
-        "AVG(e.critere_presentation) AS moy_pres, "
-        "COUNT(e.id_evaluation) AS nb_evals "
-        "FROM PROJET p "
-        "LEFT JOIN EVALUATION e ON p.id_projet = e.id_projet "
-        "GROUP BY p.id_projet, p.titre, p.nom_equipe "
-        "HAVING COUNT(e.id_evaluation) > 0"
-    );
+    QSqlQuery q;
+    q.prepare("SELECT p.id_projet, p.titre, p.nom_equipe, "
+              "AVG(e.note) AS moy_note, "
+              "AVG(e.critere_innovation) AS moy_inno, "
+              "AVG(e.critere_technique) AS moy_tech, "
+              "AVG(e.critere_presentation) AS moy_pres, "
+              "COUNT(e.id_evaluation) AS nb_evals "
+              "FROM PROJET p "
+              "LEFT JOIN EVALUATION e ON p.id_projet = e.id_projet "
+              "GROUP BY p.id_projet, p.titre, p.nom_equipe "
+              "HAVING COUNT(e.id_evaluation) > 0");
+    if (!q.exec()) {
+        signalerErreurSql(QStringLiteral("Impossible de calculer le classement automatique"), q.lastError());
+        return classement;
+    }
 
     while (q.next()) {
         ClassementProjet cp;
@@ -275,7 +499,12 @@ QVector<AlerteDivergence> Evaluation::detecterEcartsEntreJures(double seuilEcart
     QVector<AlerteDivergence> alertes;
 
     // Récupérer la liste des projets avec leurs notes
-    QSqlQuery qProjets("SELECT DISTINCT id_projet, titre, nom_equipe FROM PROJET");
+    QSqlQuery qProjets;
+    if (!qProjets.exec(QStringLiteral("SELECT DISTINCT id_projet, titre, nom_equipe FROM PROJET"))) {
+        signalerErreurSql(QStringLiteral("Impossible de lire les projets pour l'analyse des divergences"),
+                          qProjets.lastError());
+        return alertes;
+    }
     while (qProjets.next()) {
         int idProjet = qProjets.value(0).toInt();
         QString titre = qProjets.value(1).toString();
@@ -285,18 +514,21 @@ QVector<AlerteDivergence> Evaluation::detecterEcartsEntreJures(double seuilEcart
         qNotes.prepare("SELECT e.note, (j.prenom || ' ' || j.nom) AS jure_nom "
                        "FROM EVALUATION e "
                        "JOIN JURY j ON e.id_jury = j.id_jury "
-                       "WHERE e.id_projet = :id "
+                       "WHERE e.id_projet = ? "
                        "ORDER BY e.note ASC");
-        qNotes.bindValue(":id", idProjet);
+        qNotes.addBindValue(idProjet);
 
         QVector<double> notes;
         QVector<QString> jures;
 
-        if (qNotes.exec()) {
-            while (qNotes.next()) {
-                notes.append(qNotes.value(0).toDouble());
-                jures.append(qNotes.value(1).toString());
-            }
+        if (!qNotes.exec()) {
+            signalerErreurSql(QStringLiteral("Impossible de lire les notes du projet « %1 »").arg(titre),
+                              qNotes.lastError());
+            return alertes;
+        }
+        while (qNotes.next()) {
+            notes.append(qNotes.value(0).toDouble());
+            jures.append(qNotes.value(1).toString());
         }
 
         // Si le projet a été évalué par au moins 2 jurés
@@ -432,8 +664,8 @@ bool Evaluation::exporterClassementPDF(const QString &cheminFichier)
 
         html += "<tr class='" + rowClass + "'>"
                 "<td style='text-align:center;'>" + rangBadge + "</td>"
-                "<td><strong>" + cp.titre + "</strong></td>"
-                "<td>" + cp.equipe + "</td>"
+                "<td><strong>" + cp.titre.toHtmlEscaped() + "</strong></td>"
+                "<td>" + cp.equipe.toHtmlEscaped() + "</td>"
                 "<td style='text-align:center; font-size:13px;'><strong>" + QString::number(cp.noteMoyenne, 'f', 2) + " / 20</strong></td>"
                 "<td style='text-align:center;'>" + QString::number(cp.scoreInnovation, 'f', 1) + "</td>"
                 "<td style='text-align:center;'>" + QString::number(cp.scoreTechnique, 'f', 1) + "</td>"
@@ -453,7 +685,16 @@ bool Evaluation::exporterClassementPDF(const QString &cheminFichier)
         "</body>"
         "</html>";
 
+    if (cheminFichier.trimmed().isEmpty()) {
+        qWarning() << "Export PDF du classement : chemin vide.";
+        return false;
+    }
+
     doc.setHtml(html);
     doc.print(&printer);
+    if (!QFile::exists(cheminFichier) || QFileInfo(cheminFichier).size() <= 0) {
+        qWarning() << "Export PDF du classement : le fichier n'a pas été créé ou est vide :" << cheminFichier;
+        return false;
+    }
     return true;
 }
