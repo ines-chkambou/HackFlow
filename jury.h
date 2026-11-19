@@ -32,6 +32,15 @@ private:
     QString disponibilite;
 
 public:
+    // Longueurs maximales alignées sur migration_nondestructive_oracle.sql.
+    static const int NomMax = 100;
+    static const int PrenomMax = 100;
+    static const int EmailMax = 254;
+    static const int TelephoneMax = 50;
+    static const int RoleMax = 100;
+    static const int EquipeMax = 100;
+    static const int DisponibiliteMax = 50;
+
     Jury();
     Jury(int id, const QString &nom, const QString &prenom, const QString &email,
          const QString &telephone, const QString &role, const QString &equipe,
@@ -65,8 +74,8 @@ public:
     static bool emailExiste(const QString &email, int exclureId = -1);
 
     // CRUD
-    bool ajouter();
-    bool modifier(int id);
+    bool ajouter(QString *messageErreur = nullptr);
+    bool modifier(int id, QString *messageErreur = nullptr);
     static bool supprimer(int id);
     static Jury obtenirParId(int id);
 
@@ -88,7 +97,6 @@ public:
     static int compterParDisponibilite(const QString &dispo);
     // Top 5 des rôles (par effectif) + « Autres » regroupant le reste
     static QVector<QPair<QString, int>> repartitionParRole();
-    static QMap<QString, double> moyennesParJury();
     static int nombreEvaluationsParJury(int idJury);
     static double noteMoyenneDonneeParJury(int idJury);
 

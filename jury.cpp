@@ -1,8 +1,11 @@
 #include "jury.h"
+#include "sqlutils.h"
 #include <QRegularExpression>
+#include <QSqlDatabase>
 #include <QSqlError>
 #include <QSqlRecord>
 #include <QFile>
+#include <QFileInfo>
 #include <QTextStream>
 #include <QDateTime>
 #include <QPrinter>
@@ -11,6 +14,7 @@
 #include <QMarginsF>
 #include <QTextDocument>
 #include <QDebug>
+#include <utility>
 
 Jury::Jury() : id(-1), disponibilite("Disponible")
 {
@@ -34,45 +38,95 @@ Jury::Jury(const QString &nom, const QString &prenom, const QString &email,
 
 bool Jury::valider(QString &messageErreur) const
 {
-    if (nom.trimmed().isEmpty()) {
+    const QString nomNettoye = nom.trimmed();
+    const QString prenomNettoye = prenom.trimmed();
+    const QString emailNettoye = email.trimmed();
+    const QString telNettoye = telephone.trimmed();
+    const QString roleNettoye = role.trimmed();
+    const QString equipeNettoyee = equipe.trimmed();
+    const QString dispoNettoyee = disponibilite.trimmed();
+
+    if (nomNettoye.isEmpty()) {
         messageErreur = "Le nom du juré est obligatoire.";
         return false;
     }
-    if (prenom.trimmed().isEmpty()) {
+    if (nomNettoye.size() > NomMax) {
+        messageErreur = QString("Le nom ne peut pas dépasser %1 caractères.").arg(NomMax);
+        return false;
+    }
+    if (prenomNettoye.isEmpty()) {
         messageErreur = "Le prénom du juré est obligatoire.";
         return false;
     }
-    if (email.trimmed().isEmpty()) {
+    if (prenomNettoye.size() > PrenomMax) {
+        messageErreur = QString("Le prénom ne peut pas dépasser %1 caractères.").arg(PrenomMax);
+        return false;
+    }
+    if (emailNettoye.isEmpty()) {
         messageErreur = "L'adresse email est obligatoire.";
+        return false;
+    }
+    if (emailNettoye.size() > EmailMax) {
+        messageErreur = QString("L'adresse email ne peut pas dépasser %1 caractères.").arg(EmailMax);
         return false;
     }
 
     static QRegularExpression emailRegex("^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$");
-    if (!emailRegex.match(email.trimmed()).hasMatch()) {
+    if (!emailRegex.match(emailNettoye).hasMatch()) {
         messageErreur = "Le format de l'adresse email est invalide (ex: nom@domaine.com).";
         return false;
     }
 
-    static QRegularExpression telRegex("^\\+?[0-9 ]{8,17}$");
-    if (!telRegex.match(telephone.trimmed()).hasMatch()) {
-        messageErreur = "Le numéro de téléphone est invalide (ex: +216 98 123 456).";
+    if (telNettoye.isEmpty()) {
+        messageErreur = "Le numéro de téléphone est obligatoire.";
+        return false;
+    }
+    if (telNettoye.size() > TelephoneMax) {
+        messageErreur = QString("Le numéro de téléphone ne peut pas dépasser %1 caractères.").arg(TelephoneMax);
         return false;
     }
 
-    if (role.trimmed().isEmpty()) {
+    // Seuls les chiffres et les séparateurs usuels sont acceptés.
+    static QRegularExpression telCaracteresRegex("^[0-9+()\\- ]+$");
+    if (!telCaracteresRegex.match(telNettoye).hasMatch()) {
+        messageErreur = "Le numéro de téléphone ne peut contenir que des chiffres, espaces, +, - et parenthèses.";
+        return false;
+    }
+    int chiffres = 0;
+    for (const QChar &c : telNettoye) {
+        if (c.isDigit()) ++chiffres;
+    }
+    if (chiffres < 8) {
+        messageErreur = "Le numéro de téléphone doit contenir au moins 8 chiffres (ex: +216 98 123 456).";
+        return false;
+    }
+
+    if (roleNettoye.isEmpty()) {
         messageErreur = "Le rôle du juré est obligatoire (ex: Expert Tech).";
         return false;
     }
-    if (equipe.trimmed().isEmpty()) {
+    if (roleNettoye.size() > RoleMax) {
+        messageErreur = QString("Le rôle ne peut pas dépasser %1 caractères.").arg(RoleMax);
+        return false;
+    }
+    if (equipeNettoyee.isEmpty()) {
         messageErreur = "L'équipe du juré est obligatoire (ex: Technologie).";
         return false;
     }
-    if (disponibilite.trimmed().isEmpty()) {
+    if (equipeNettoyee.size() > EquipeMax) {
+        messageErreur = QString("L'équipe ne peut pas dépasser %1 caractères.").arg(EquipeMax);
+        return false;
+    }
+    if (dispoNettoyee.isEmpty()) {
         messageErreur = "La disponibilité est obligatoire.";
         return false;
     }
+    if (dispoNettoyee.size() > DisponibiliteMax) {
+        messageErreur = QString("La disponibilité ne peut pas dépasser %1 caractères.").arg(DisponibiliteMax);
+        return false;
+    }
 
-    if (emailExiste(email.trimmed(), id)) {
+    if (emailExiste(emailNettoye, id)) {
         messageErreur = "Cette adresse email est déjà utilisée par un autre juré.";
         return false;
     }
@@ -90,14 +144,26 @@ bool Jury::emailExiste(const QString &email, int exclureId)
         q.prepare("SELECT COUNT(*) FROM JURY WHERE LOWER(email) = LOWER(?)");
         q.addBindValue(email.trimmed());
     }
-    if (q.exec() && q.next()) {
+    if (!q.exec()) {
+        signalerErreurSql(QStringLiteral("Impossible de vérifier l'adresse email du juré"), q.lastError());
+        return false;
+    }
+    if (q.next()) {
         return q.value(0).toInt() > 0;
     }
     return false;
 }
 
-bool Jury::ajouter()
+bool Jury::ajouter(QString *messageErreur)
 {
+    if (messageErreur) messageErreur->clear();
+    id = -1;
+    QString validation;
+    if (!valider(validation)) {
+        if (messageErreur) *messageErreur = validation;
+        return false;
+    }
+
     QSqlQuery q;
     q.prepare("INSERT INTO JURY (nom, prenom, email, telephone, role, equipe, disponibilite) "
               "VALUES (?, ?, ?, ?, ?, ?, ?)");
@@ -107,17 +173,32 @@ bool Jury::ajouter()
     q.addBindValue(telephone.trimmed());
     q.addBindValue(role.trimmed());
     q.addBindValue(equipe.trimmed());
-    q.addBindValue(disponibilite);
+    q.addBindValue(disponibilite.trimmed());
     if (!q.exec()) {
+        const QString message = QStringLiteral("Impossible d'ajouter le juré : %1").arg(q.lastError().text());
         qWarning() << "Erreur ajout juré:" << q.lastError().text();
+        if (messageErreur) *messageErreur = message;
         return false;
     }
-    QSqlQuery().exec("COMMIT");
+    if (messageErreur) messageErreur->clear();
     return true;
 }
 
-bool Jury::modifier(int idJury)
+bool Jury::modifier(int idJury, QString *messageErreur)
 {
+    if (messageErreur) messageErreur->clear();
+    if (idJury <= 0) {
+        if (messageErreur) *messageErreur = QStringLiteral("Identifiant de juré invalide.");
+        return false;
+    }
+
+    id = idJury;
+    QString validation;
+    if (!valider(validation)) {
+        if (messageErreur) *messageErreur = validation;
+        return false;
+    }
+
     QSqlQuery q;
     q.prepare("UPDATE JURY SET nom = ?, prenom = ?, email = ?, telephone = ?, "
               "role = ?, equipe = ?, disponibilite = ? WHERE id_jury = ?");
@@ -127,32 +208,61 @@ bool Jury::modifier(int idJury)
     q.addBindValue(telephone.trimmed());
     q.addBindValue(role.trimmed());
     q.addBindValue(equipe.trimmed());
-    q.addBindValue(disponibilite);
+    q.addBindValue(disponibilite.trimmed());
     q.addBindValue(idJury);
     if (!q.exec()) {
+        const QString message = QStringLiteral("Impossible de modifier le juré : %1").arg(q.lastError().text());
         qWarning() << "Erreur modification juré:" << q.lastError().text();
+        if (messageErreur) *messageErreur = message;
         return false;
     }
-    QSqlQuery().exec("COMMIT");
+    if (messageErreur) messageErreur->clear();
     return true;
 }
 
 bool Jury::supprimer(int idJury)
 {
-    // Suppression en cascade manuelle (les clés étrangères SQLite ne sont pas activées par défaut)
+    // Suppression en cascade manuelle dans une transaction :
+    // les clés étrangères SQLite ne sont pas activées par défaut, et sous Oracle
+    // les trois suppressions doivent être atomiques.
+    QSqlDatabase db = QSqlDatabase::database();
+    if (!db.transaction()) {
+        qWarning() << "Erreur ouverture transaction suppression juré:" << db.lastError().text();
+        return false;
+    }
+
+    QSqlQuery q0;
+    q0.prepare("DELETE FROM SESSION_EVALUATION WHERE id_jury = ?");
+    q0.addBindValue(idJury);
+    if (!q0.exec()) {
+        qWarning() << "Erreur suppression sessions juré:" << q0.lastError().text();
+        db.rollback();
+        return false;
+    }
+
     QSqlQuery q1;
     q1.prepare("DELETE FROM EVALUATION WHERE id_jury = ?");
     q1.addBindValue(idJury);
-    q1.exec();
+    if (!q1.exec()) {
+        qWarning() << "Erreur suppression évaluations juré:" << q1.lastError().text();
+        db.rollback();
+        return false;
+    }
 
     QSqlQuery q2;
     q2.prepare("DELETE FROM JURY WHERE id_jury = ?");
     q2.addBindValue(idJury);
     if (!q2.exec()) {
         qWarning() << "Erreur suppression juré:" << q2.lastError().text();
+        db.rollback();
         return false;
     }
-    QSqlQuery().exec("COMMIT");
+
+    if (!db.commit()) {
+        qWarning() << "Erreur validation suppression juré:" << db.lastError().text();
+        db.rollback();
+        return false;
+    }
     return true;
 }
 
@@ -162,7 +272,11 @@ Jury Jury::obtenirParId(int idJury)
     QSqlQuery q;
     q.prepare("SELECT id_jury, nom, prenom, email, telephone, role, equipe, disponibilite FROM JURY WHERE id_jury = ?");
     q.addBindValue(idJury);
-    if (q.exec() && q.next()) {
+    if (!q.exec()) {
+        signalerErreurSql(QStringLiteral("Impossible de lire le juré #%1").arg(idJury), q.lastError());
+        return j;
+    }
+    if (q.next()) {
         j = Jury(q.value(0).toInt(), q.value(1).toString(), q.value(2).toString(), q.value(3).toString(),
                  q.value(4).toString(), q.value(5).toString(), q.value(6).toString(), q.value(7).toString());
     }
@@ -174,10 +288,13 @@ QSqlQueryModel* Jury::afficher()
     return rechercher();
 }
 
-static QString echapperSql(const QString &s)
+static QString echapperLike(QString s)
 {
-    QString r = s;
-    return r.replace("'", "''");
+    // Échappe les jokers SQL LIKE, puis le caractère d'échappement lui-même.
+    s.replace("\\", "\\\\");
+    s.replace("%", "\\%");
+    s.replace("_", "\\_");
+    return s;
 }
 
 QSqlQueryModel* Jury::rechercher(const QString &recherche, const QString &role, const QString &equipe,
@@ -192,21 +309,34 @@ QSqlQueryModel* Jury::rechercher(const QString &recherche, const QString &role, 
                   "LEFT JOIN EVALUATION e ON j.id_jury = e.id_jury "
                   "WHERE 1=1 ";
 
-    const QString rech = echapperSql(recherche.trimmed());
-    if (!rech.isEmpty()) {
-        req += QString("AND (LOWER(j.nom) LIKE LOWER('%%1%') "
-                       "OR LOWER(j.prenom) LIKE LOWER('%%1%') "
-                       "OR LOWER(j.prenom || ' ' || j.nom) LIKE LOWER('%%1%') "
-                       "OR LOWER(j.email) LIKE LOWER('%%1%') "
-                       "OR LOWER(j.telephone) LIKE LOWER('%%1%') "
-                       "OR LOWER(j.role) LIKE LOWER('%%1%') "
-                       "OR LOWER(j.equipe) LIKE LOWER('%%1%')) ").arg(rech);
-    }
-    if (!role.isEmpty())   req += QString("AND j.role = '%1' ").arg(echapperSql(role));
-    if (!equipe.isEmpty()) req += QString("AND j.equipe = '%1' ").arg(echapperSql(equipe));
-    if (!dispo.isEmpty())  req += QString("AND j.disponibilite = '%1' ").arg(echapperSql(dispo));
+    QList<QVariant> valeurs;
 
-    req += "GROUP BY j.id_jury ";
+    const QString rech = recherche.trimmed();
+    if (!rech.isEmpty()) {
+        const QString motif = "%" + echapperLike(rech) + "%";
+        req += "AND (LOWER(j.nom) LIKE LOWER(?) ESCAPE '\\' "
+               "OR LOWER(j.prenom) LIKE LOWER(?) ESCAPE '\\' "
+               "OR LOWER(j.prenom || ' ' || j.nom) LIKE LOWER(?) ESCAPE '\\' "
+               "OR LOWER(j.email) LIKE LOWER(?) ESCAPE '\\' "
+               "OR LOWER(j.telephone) LIKE LOWER(?) ESCAPE '\\' "
+               "OR LOWER(j.role) LIKE LOWER(?) ESCAPE '\\' "
+               "OR LOWER(j.equipe) LIKE LOWER(?) ESCAPE '\\') ";
+        for (int i = 0; i < 7; ++i) valeurs.append(motif);
+    }
+    if (!role.trimmed().isEmpty()) {
+        req += "AND j.role = ? ";
+        valeurs.append(role.trimmed());
+    }
+    if (!equipe.trimmed().isEmpty()) {
+        req += "AND j.equipe = ? ";
+        valeurs.append(equipe.trimmed());
+    }
+    if (!dispo.trimmed().isEmpty()) {
+        req += "AND j.disponibilite = ? ";
+        valeurs.append(dispo.trimmed());
+    }
+
+    req += "GROUP BY j.id_jury, j.nom, j.prenom, j.email, j.telephone, j.role, j.equipe, j.disponibilite ";
 
     QString colonne = "j.id_jury";
     if (critere == "Nom")                  colonne = "LOWER(j.nom)";
@@ -220,9 +350,20 @@ QSqlQueryModel* Jury::rechercher(const QString &recherche, const QString &role, 
     const QString sens = (ordre.toUpper() == "DESC") ? "DESC" : "ASC";
     req += QString("ORDER BY %1 %2, j.id_jury ASC").arg(colonne, sens);
 
-    model->setQuery(req);
+    QSqlQuery q;
+    if (!q.prepare(req)) {
+        signalerErreurSql(QStringLiteral("Impossible de préparer la recherche des jurés"), q.lastError());
+        return model;
+    }
+    for (const QVariant &valeur : valeurs) q.addBindValue(valeur);
+    if (!q.exec()) {
+        signalerErreurSql(QStringLiteral("Impossible de rechercher les jurés"), q.lastError());
+        return model;
+    }
+
+    model->setQuery(std::move(q));
     if (model->lastError().isValid()) {
-        qWarning() << "Erreur requête jurys:" << model->lastError().text();
+        signalerErreurSql(QStringLiteral("Impossible de charger le tableau des jurés"), model->lastError());
     }
     return model;
 }
@@ -230,7 +371,11 @@ QSqlQueryModel* Jury::rechercher(const QString &recherche, const QString &role, 
 QStringList Jury::rolesDistincts()
 {
     QStringList l;
-    QSqlQuery q("SELECT role FROM JURY GROUP BY role ORDER BY MIN(id_jury) ASC");
+    QSqlQuery q;
+    if (!q.exec(QStringLiteral("SELECT role FROM JURY GROUP BY role ORDER BY MIN(id_jury) ASC"))) {
+        signalerErreurSql(QStringLiteral("Impossible de charger la liste des rôles"), q.lastError());
+        return l;
+    }
     while (q.next()) l << q.value(0).toString();
     return l;
 }
@@ -238,14 +383,22 @@ QStringList Jury::rolesDistincts()
 QStringList Jury::equipesDistinctes()
 {
     QStringList l;
-    QSqlQuery q("SELECT equipe FROM JURY GROUP BY equipe ORDER BY MIN(id_jury) ASC");
+    QSqlQuery q;
+    if (!q.exec(QStringLiteral("SELECT equipe FROM JURY GROUP BY equipe ORDER BY MIN(id_jury) ASC"))) {
+        signalerErreurSql(QStringLiteral("Impossible de charger la liste des équipes"), q.lastError());
+        return l;
+    }
     while (q.next()) l << q.value(0).toString();
     return l;
 }
 
 int Jury::compterTotal()
 {
-    QSqlQuery q("SELECT COUNT(*) FROM JURY");
+    QSqlQuery q;
+    if (!q.exec(QStringLiteral("SELECT COUNT(*) FROM JURY"))) {
+        signalerErreurSql(QStringLiteral("Impossible de compter les jurés"), q.lastError());
+        return 0;
+    }
     return q.next() ? q.value(0).toInt() : 0;
 }
 
@@ -257,15 +410,23 @@ int Jury::compterDisponibles()
 int Jury::compterParDisponibilite(const QString &dispo)
 {
     QSqlQuery q;
-    q.prepare("SELECT COUNT(*) FROM JURY WHERE disponibilite = :d");
-    q.bindValue(":d", dispo);
-    return (q.exec() && q.next()) ? q.value(0).toInt() : 0;
+    q.prepare("SELECT COUNT(*) FROM JURY WHERE disponibilite = ?");
+    q.addBindValue(dispo);
+    if (!q.exec()) {
+        signalerErreurSql(QStringLiteral("Impossible de compter les jurés disponibles"), q.lastError());
+        return 0;
+    }
+    return q.next() ? q.value(0).toInt() : 0;
 }
 
 QVector<QPair<QString, int>> Jury::repartitionParRole()
 {
     QVector<QPair<QString, int>> tous;
-    QSqlQuery q("SELECT role, COUNT(*) AS n FROM JURY GROUP BY role ORDER BY n DESC, MIN(id_jury) ASC");
+    QSqlQuery q;
+    if (!q.exec(QStringLiteral("SELECT role, COUNT(*) AS n FROM JURY GROUP BY role ORDER BY n DESC, MIN(id_jury) ASC"))) {
+        signalerErreurSql(QStringLiteral("Impossible de calculer la répartition par rôle"), q.lastError());
+        return {};
+    }
     while (q.next()) tous.append(qMakePair(q.value(0).toString(), q.value(1).toInt()));
 
     QVector<QPair<QString, int>> res;
@@ -278,36 +439,41 @@ QVector<QPair<QString, int>> Jury::repartitionParRole()
     return res;
 }
 
-QMap<QString, double> Jury::moyennesParJury()
-{
-    QMap<QString, double> m;
-    QSqlQuery q("SELECT j.prenom || ' ' || j.nom, COUNT(e.id_evaluation) "
-                "FROM JURY j LEFT JOIN EVALUATION e ON j.id_jury = e.id_jury "
-                "GROUP BY j.id_jury ORDER BY j.id_jury ASC");
-    while (q.next()) m.insert(q.value(0).toString(), q.value(1).toDouble());
-    return m;
-}
-
 int Jury::nombreEvaluationsParJury(int idJury)
 {
     QSqlQuery q;
-    q.prepare("SELECT COUNT(*) FROM EVALUATION WHERE id_jury = :id");
-    q.bindValue(":id", idJury);
-    return (q.exec() && q.next()) ? q.value(0).toInt() : 0;
+    q.prepare("SELECT COUNT(*) FROM EVALUATION WHERE id_jury = ?");
+    q.addBindValue(idJury);
+    if (!q.exec()) {
+        signalerErreurSql(QStringLiteral("Impossible de compter les évaluations du juré #%1").arg(idJury), q.lastError());
+        return 0;
+    }
+    return q.next() ? q.value(0).toInt() : 0;
 }
 
 double Jury::noteMoyenneDonneeParJury(int idJury)
 {
     QSqlQuery q;
-    q.prepare("SELECT COALESCE(AVG(note), 0.0) FROM EVALUATION WHERE id_jury = :id");
-    q.bindValue(":id", idJury);
-    return (q.exec() && q.next()) ? q.value(0).toDouble() : 0.0;
+    q.prepare("SELECT COALESCE(AVG(note), 0.0) FROM EVALUATION WHERE id_jury = ?");
+    q.addBindValue(idJury);
+    if (!q.exec()) {
+        signalerErreurSql(QStringLiteral("Impossible de calculer la moyenne du juré #%1").arg(idJury), q.lastError());
+        return 0.0;
+    }
+    return q.next() ? q.value(0).toDouble() : 0.0;
 }
 
 bool Jury::exporterCSV(const QString &cheminFichier)
 {
+    if (cheminFichier.trimmed().isEmpty()) {
+        qWarning() << "Export CSV des jurés : chemin vide.";
+        return false;
+    }
     QFile file(cheminFichier);
-    if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) return false;
+    if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
+        qWarning() << "Export CSV des jurés : ouverture impossible :" << file.errorString();
+        return false;
+    }
 
     QTextStream out(&file);
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
@@ -321,6 +487,12 @@ bool Jury::exporterCSV(const QString &cheminFichier)
     out << "ID;Nom;Prénom;Email;Téléphone;Rôle;Équipe;Disponibilité;Nb Évaluations;Note Moyenne Donnée\n";
 
     QSqlQueryModel *model = afficher();
+    if (model->lastError().isValid()) {
+        qWarning() << "Export CSV des jurés : lecture impossible :" << model->lastError().text();
+        delete model;
+        file.close();
+        return false;
+    }
     while (model->canFetchMore()) model->fetchMore();
     for (int i = 0; i < model->rowCount(); ++i) {
         QSqlRecord r = model->record(i);
@@ -333,13 +505,26 @@ bool Jury::exporterCSV(const QString &cheminFichier)
             << QString::number(r.value(9).toDouble(), 'f', 2).replace('.', ',') << "\n";
     }
     delete model;
+
+    out.flush();
+    const bool ok = out.status() == QTextStream::Ok && file.error() == QFileDevice::NoError;
+    if (!ok) qWarning() << "Export CSV des jurés : écriture incomplète :" << file.errorString();
     file.close();
-    return true;
+    return ok;
 }
 
 bool Jury::exporterPDF(const QString &cheminFichier)
 {
+    if (cheminFichier.trimmed().isEmpty()) {
+        qWarning() << "Export PDF des jurés : chemin vide.";
+        return false;
+    }
     QSqlQueryModel *model = afficher();
+    if (model->lastError().isValid()) {
+        qWarning() << "Export PDF des jurés : lecture impossible :" << model->lastError().text();
+        delete model;
+        return false;
+    }
     while (model->canFetchMore()) model->fetchMore();
 
     const QString dateGeneration = QDateTime::currentDateTime().toString("dd/MM/yyyy HH:mm");
@@ -388,5 +573,9 @@ bool Jury::exporterPDF(const QString &cheminFichier)
     QTextDocument doc;
     doc.setHtml(html);
     doc.print(&printer);
+    if (!QFile::exists(cheminFichier) || QFileInfo(cheminFichier).size() <= 0) {
+        qWarning() << "Export PDF des jurés : le fichier n'a pas été créé ou est vide :" << cheminFichier;
+        return false;
+    }
     return true;
 }

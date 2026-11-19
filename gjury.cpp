@@ -3,6 +3,7 @@
 #include "parametresjury.h"
 #include "planningevaluations.h"
 #include "evaluationprojets.h"
+#include "sqlutils.h"
 #include <QHeaderView>
 #include <QMessageBox>
 #include <QFileDialog>
@@ -24,6 +25,8 @@
 #include <QSqlQuery>
 #include <QSqlQueryModel>
 #include <QTableWidget>
+#include <QTextCursor>
+#include <QTextEdit>
 #include <QFrame>
 #include <QCursor>
 #include <QStyle>
@@ -126,6 +129,23 @@ GJury::GJury(QWidget *parent)
       m_pageEvaluations(nullptr)
 {
     ui->setupUi(this);
+
+    // Action minimale du bouton de notifications (aucun flux de notifications n'est persisté).
+    connect(ui->btnNotification, &QPushButton::clicked, this, [this]() {
+        QMessageBox::information(this, "Notifications",
+                                 "Aucune nouvelle notification pour le moment.");
+    });
+
+    // L'ancien formulaire doit respecter la même limite que la grille à 7 critères.
+    connect(ui->textEvalCommentaire, &QTextEdit::textChanged, this, [this]() {
+        const QString texte = ui->textEvalCommentaire->toPlainText();
+        if (texte.size() <= Evaluation::CommentaireMax) return;
+        QSignalBlocker blocage(ui->textEvalCommentaire);
+        ui->textEvalCommentaire->setPlainText(texte.left(Evaluation::CommentaireMax));
+        QTextCursor curseur = ui->textEvalCommentaire->textCursor();
+        curseur.movePosition(QTextCursor::End);
+        ui->textEvalCommentaire->setTextCursor(curseur);
+    });
 
     // Anneau de statistiques de la carte « Statistiques du jury »
     m_donutChart = new DonutChartWidget(ui->widgetDonutContainer);
@@ -522,6 +542,10 @@ void GJury::ouvrirDialogueJury(int idJury)
     QLineEdit *edPrenom = new QLineEdit(existant.getPrenom());
     QLineEdit *edEmail = new QLineEdit(existant.getEmail());
     QLineEdit *edTel = new QLineEdit(existant.getTelephone());
+    edNom->setMaxLength(Jury::NomMax);
+    edPrenom->setMaxLength(Jury::PrenomMax);
+    edEmail->setMaxLength(Jury::EmailMax);
+    edTel->setMaxLength(Jury::TelephoneMax);
     edNom->setPlaceholderText("Ben Ali");
     edPrenom->setPlaceholderText("Ahmed");
     edEmail->setPlaceholderText("ahmed.benali@example.com");
@@ -535,9 +559,11 @@ void GJury::ouvrirDialogueJury(int idJury)
     QComboBox *cbRole = new QComboBox();
     cbRole->setEditable(true);
     cbRole->addItems(roles);
+    if (cbRole->lineEdit()) cbRole->lineEdit()->setMaxLength(Jury::RoleMax);
     QComboBox *cbEquipe = new QComboBox();
     cbEquipe->setEditable(true);
     cbEquipe->addItems(equipes);
+    if (cbEquipe->lineEdit()) cbEquipe->lineEdit()->setMaxLength(Jury::EquipeMax);
     QComboBox *cbDispo = new QComboBox();
     cbDispo->addItems({"Disponible", "En ligne", "En attente"});
 
@@ -584,11 +610,12 @@ void GJury::ouvrirDialogueJury(int idJury)
             QMessageBox::warning(&dlg, "Saisie invalide", erreur);
             return;
         }
-        const bool ok = modification ? j.modifier(idJury) : j.ajouter();
+        QString erreurSql;
+        const bool ok = modification ? j.modifier(idJury, &erreurSql) : j.ajouter(&erreurSql);
         if (!ok) {
             QMessageBox::critical(&dlg, "Erreur",
                                   "L'enregistrement dans la base de données a échoué :\n" +
-                                  QSqlDatabase::database().lastError().text());
+                                  (erreurSql.isEmpty() ? QStringLiteral("Erreur inconnue.") : erreurSql));
             return;
         }
         dlg.accept();
@@ -676,9 +703,12 @@ void GJury::afficherDetailJury(int idJury)
     tableHisto->setEditTriggers(QAbstractItemView::NoEditTriggers);
 
     QSqlQuery q;
-    q.prepare("SELECT p.titre, e.note, e.commentaire FROM EVALUATION e JOIN PROJET p ON e.id_projet = p.id_projet WHERE e.id_jury = :id");
-    q.bindValue(":id", idJury);
-    if (q.exec()) {
+    q.prepare("SELECT p.titre, e.note, e.commentaire FROM EVALUATION e JOIN PROJET p ON e.id_projet = p.id_projet WHERE e.id_jury = ?");
+    q.addBindValue(idJury);
+    if (!q.exec()) {
+        signalerErreurSql(QStringLiteral("Impossible de lire l'historique des évaluations du juré #%1").arg(idJury),
+                          q.lastError());
+    } else {
         int r = 0;
         while (q.next()) {
             tableHisto->insertRow(r);
@@ -840,19 +870,27 @@ void GJury::on_btnExportCSV_clicked()
 void GJury::chargerCombosProjetsEtJurys()
 {
     ui->comboEvalJury->clear();
-    QSqlQuery qJury("SELECT id_jury, prenom, nom, role FROM JURY ORDER BY prenom ASC");
-    while (qJury.next()) {
-        int id = qJury.value(0).toInt();
-        QString nomComplet = QString("%1 %2 (%3)").arg(qJury.value(1).toString(), qJury.value(2).toString(), qJury.value(3).toString());
-        ui->comboEvalJury->addItem(nomComplet, id);
+    QSqlQuery qJury;
+    if (!qJury.exec(QStringLiteral("SELECT id_jury, prenom, nom, role FROM JURY ORDER BY prenom ASC"))) {
+        signalerErreurSql(QStringLiteral("Impossible de charger la liste des jurés pour l'évaluation"), qJury.lastError());
+    } else {
+        while (qJury.next()) {
+            int id = qJury.value(0).toInt();
+            QString nomComplet = QString("%1 %2 (%3)").arg(qJury.value(1).toString(), qJury.value(2).toString(), qJury.value(3).toString());
+            ui->comboEvalJury->addItem(nomComplet, id);
+        }
     }
 
     ui->comboEvalProjet->clear();
-    QSqlQuery qProj("SELECT id_projet, titre, nom_equipe FROM PROJET ORDER BY id_projet ASC");
-    while (qProj.next()) {
-        int id = qProj.value(0).toInt();
-        QString titre = QString("%1 — Équipe %2").arg(qProj.value(1).toString(), qProj.value(2).toString());
-        ui->comboEvalProjet->addItem(titre, id);
+    QSqlQuery qProj;
+    if (!qProj.exec(QStringLiteral("SELECT id_projet, titre, nom_equipe FROM PROJET ORDER BY id_projet ASC"))) {
+        signalerErreurSql(QStringLiteral("Impossible de charger la liste des projets pour l'évaluation"), qProj.lastError());
+    } else {
+        while (qProj.next()) {
+            int id = qProj.value(0).toInt();
+            QString titre = QString("%1 — Équipe %2").arg(qProj.value(1).toString(), qProj.value(2).toString());
+            ui->comboEvalProjet->addItem(titre, id);
+        }
     }
 }
 
@@ -860,6 +898,10 @@ void GJury::chargerTableauEvaluations()
 {
     QSqlQueryModel *model = Evaluation::afficher();
     ui->tableEvals->setRowCount(0);
+    if (model->lastError().isValid()) {
+        delete model;
+        return;
+    }
 
     int rows = model->rowCount();
     ui->tableEvals->setRowCount(rows);
@@ -892,7 +934,10 @@ void GJury::chargerTableauEvaluations()
         btnDel->setStyleSheet("background-color: #121D34; border: 1px solid #283754; color: #EF4444; border-radius: 4px; padding: 3px;");
         connect(btnDel, &QPushButton::clicked, [this, idEval]() {
             if (QMessageBox::question(this, "Suppression", "Voulez-vous supprimer cette évaluation ?") == QMessageBox::Yes) {
-                Evaluation::supprimer(idEval);
+                if (!Evaluation::supprimer(idEval)) {
+                    QMessageBox::critical(this, "Erreur", "Impossible de supprimer cette évaluation.");
+                    return;
+                }
                 chargerTableauEvaluations();
                 chargerTableauJurys();
                 actualiserStatistiquesEtGraphiques();
@@ -906,8 +951,42 @@ void GJury::chargerTableauEvaluations()
     delete model;
 }
 
-void GJury::on_tableEvals_cellClicked(int, int)
+void GJury::on_tableEvals_cellClicked(int row, int column)
 {
+    if (column == 7) return;
+
+    QTableWidgetItem *item = ui->tableEvals->item(row, 0);
+    if (!item) return;
+    QString idTexte = item->text();
+    idTexte.remove('#');
+    bool ok = false;
+    const int idEval = idTexte.trimmed().toInt(&ok);
+    if (!ok || idEval <= 0) return;
+
+    const EvalProjet e = EvaluationProjetsPage::lireEvaluation(idEval);
+    if (e.id <= 0) return;
+
+    QString commentaire = e.commentaire.trimmed();
+    if (commentaire.isEmpty()) commentaire = QStringLiteral("(aucun commentaire)");
+
+    const QString texte = QString(
+        "Projet : %1\nÉquipe : %2\nJuré : %3 %4\nDate : %5\n\n"
+        "Note globale : %6 / 20\n\n"
+        "Qualité : %7 / 20\nInnovation : %8 / 20\nFaisabilité : %9 / 20\n"
+        "Présentation : %10 / 20\nImpact : %11 / 20\nBusiness model : %12 / 20\n"
+        "Équipe : %13 / 20\n\nCommentaire :\n%14")
+        .arg(e.titreProjet, e.equipe, e.nomJury, e.prenomJury, e.dateHeure)
+        .arg(e.note, 0, 'f', 2)
+        .arg(e.criteres[0], 0, 'f', 1)
+        .arg(e.criteres[1], 0, 'f', 1)
+        .arg(e.criteres[2], 0, 'f', 1)
+        .arg(e.criteres[3], 0, 'f', 1)
+        .arg(e.criteres[4], 0, 'f', 1)
+        .arg(e.criteres[5], 0, 'f', 1)
+        .arg(e.criteres[6], 0, 'f', 1)
+        .arg(commentaire);
+
+    QMessageBox::information(this, "Détail de l'évaluation", texte);
 }
 
 void GJury::on_inputRechercheEval_textChanged(const QString &text)
@@ -955,26 +1034,23 @@ void GJury::on_btnEnregistrerEval_clicked()
     double pres = ui->sliderPresentation->value();
     double pitch = ui->sliderPitch->value();
     double noteGlobale = (inno * 0.30) + (tech * 0.35) + (pres * 0.20) + (pitch * 0.15);
-    QString comm = ui->textEvalCommentaire->toPlainText();
+    QString comm = ui->textEvalCommentaire->toPlainText().left(Evaluation::CommentaireMax);
 
     Evaluation eval(idJury, idProjet, noteGlobale, inno, tech, pres, pitch, comm);
     QString msg;
-    if (!eval.valider(msg)) {
-        QMessageBox::warning(this, "Règle de gestion violée", msg);
+    if (!eval.ajouter(&msg)) {
+        QMessageBox::warning(this, "Évaluation refusée",
+                             msg.isEmpty() ? QStringLiteral("Impossible d'enregistrer l'évaluation.") : msg);
         return;
     }
 
-    if (eval.ajouter()) {
-        QMessageBox::information(this, "Succès", "Évaluation enregistrée et horodatée avec succès !");
-        on_btnViderEval_clicked();
-        chargerTableauEvaluations();
-        chargerTableauJurys();
-        actualiserStatistiquesEtGraphiques();
-        actualiserClassementInnovant();
-        actualiserAlertesDivergence();
-    } else {
-        QMessageBox::critical(this, "Erreur", "Impossible d'enregistrer l'évaluation.");
-    }
+    QMessageBox::information(this, "Succès", "Évaluation enregistrée et horodatée avec succès !");
+    on_btnViderEval_clicked();
+    chargerTableauEvaluations();
+    chargerTableauJurys();
+    actualiserStatistiquesEtGraphiques();
+    actualiserClassementInnovant();
+    actualiserAlertesDivergence();
 }
 
 void GJury::on_btnViderEval_clicked()
