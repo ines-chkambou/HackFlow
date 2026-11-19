@@ -1,5 +1,6 @@
 #include "planningevaluations.h"
 #include "parametresjury.h"
+#include "sqlutils.h"
 #include "uihelpers.h"
 
 #include <QAction>
@@ -13,6 +14,7 @@
 #include <QDialog>
 #include <QFile>
 #include <QFileDialog>
+#include <QFileInfo>
 #include <QFrame>
 #include <QGridLayout>
 #include <QHBoxLayout>
@@ -29,6 +31,7 @@
 #include <QPushButton>
 #include <QScrollArea>
 #include <QSignalBlocker>
+#include <QSqlDatabase>
 #include <QSqlError>
 #include <QSqlQuery>
 #include <QTableWidget>
@@ -315,7 +318,7 @@ QVector<SessionEval> PlanningEvaluationsPage::lireSessions()
     QVector<SessionEval> res;
     QSqlQuery q;
     if (!q.exec(QString(kSelectSession) + "ORDER BY s.date_session, s.heure, s.id_session")) {
-        qWarning() << "Erreur lecture sessions:" << q.lastError().text();
+        signalerErreurSql(QStringLiteral("Impossible de charger le planning des évaluations"), q.lastError());
         return res;
     }
     while (q.next()) res.append(sessionDepuisRequete(q));
@@ -327,34 +330,187 @@ SessionEval PlanningEvaluationsPage::lireSession(int id)
     QSqlQuery q;
     q.prepare(QString(kSelectSession) + "WHERE s.id_session = ?");
     q.addBindValue(id);
-    if (q.exec() && q.next()) return sessionDepuisRequete(q);
+    if (!q.exec()) {
+        signalerErreurSql(QStringLiteral("Impossible de lire la session #%1").arg(id), q.lastError());
+        return SessionEval();
+    }
+    if (q.next()) return sessionDepuisRequete(q);
     return SessionEval();
 }
 
-QString PlanningEvaluationsPage::verifierConflit(const QDate &date, const QTime &heure, int idJury,
-                                                 const QString &salle, int exclureId)
+ResultatVerificationConflit PlanningEvaluationsPage::verifierConflit(const QDate &date, const QTime &heure,
+                                                                     int idJury, const QString &salle,
+                                                                     int exclureId)
 {
+    ResultatVerificationConflit resultat;
+
+    if (!date.isValid() || !heure.isValid()) {
+        resultat.etat = ResultatVerificationConflit::ConflitDetecte;
+        resultat.message = QStringLiteral("La date ou l'heure de la session est invalide.");
+        return resultat;
+    }
+
+    const ParametresJury parametres = ParametresJury::charger();
+    const int dureeMin = qMax(1, parametres.dureeEvaluationMin);
+    const QDateTime debutCandidat(date, heure);
+    const QDateTime finCandidat = debutCandidat.addSecs(dureeMin * 60);
+    const QString salleNettoyee = salle.trimmed();
+
+    // On lit toutes les sessions du même jour : deux créneaux peuvent se chevaucher
+    // même si leur heure de début diffère (durée réelle ParametresJury::dureeEvaluationMin).
     QSqlQuery q;
-    q.prepare("SELECT id_jury, salle FROM SESSION_EVALUATION WHERE date_session = ? AND heure = ? AND id_session <> ?");
+    q.prepare("SELECT id_jury, salle, heure FROM SESSION_EVALUATION "
+              "WHERE date_session = ? AND id_session <> ?");
     q.addBindValue(date.toString("yyyy-MM-dd"));
-    q.addBindValue(heure.toString("HH:mm"));
     q.addBindValue(exclureId);
-    if (q.exec()) {
-        while (q.next()) {
-            if (q.value(0).toInt() == idJury)
-                return QString("Ce juré a déjà une session le %1 à %2.").arg(date.toString(kFormatDate), heure.toString("HH:mm"));
-            if (q.value(1).toString().compare(salle, Qt::CaseInsensitive) == 0)
-                return QString("La salle « %1 » est déjà occupée le %2 à %3.").arg(salle, date.toString(kFormatDate), heure.toString("HH:mm"));
+
+    if (!q.exec()) {
+        const QString message = QStringLiteral("Impossible de vérifier les conflits de planning : %1")
+                                    .arg(q.lastError().text());
+        qWarning() << "Erreur vérification conflit planning:" << q.lastError().text();
+        resultat.etat = ResultatVerificationConflit::ErreurSql;
+        resultat.message = message;
+        return resultat;
+    }
+
+    while (q.next()) {
+        const QTime heureExistante = QTime::fromString(q.value(2).toString(), "HH:mm");
+        if (!heureExistante.isValid()) continue;
+
+        const QDateTime debutExistant(date, heureExistante);
+        const QDateTime finExistante = debutExistant.addSecs(dureeMin * 60);
+        const bool chevauche = debutCandidat < finExistante && debutExistant < finCandidat;
+        if (!chevauche) continue;
+
+        if (q.value(0).toInt() == idJury) {
+            resultat.etat = ResultatVerificationConflit::ConflitDetecte;
+            resultat.message = QString("Ce juré a déjà une session le %1 de %2 à %3 (durée : %4 min).")
+                                   .arg(date.toString(kFormatDate),
+                                        heureExistante.toString("HH:mm"),
+                                        finExistante.time().toString("HH:mm"))
+                                   .arg(dureeMin);
+            return resultat;
+        }
+        if (!salleNettoyee.isEmpty() &&
+            q.value(1).toString().trimmed().compare(salleNettoyee, Qt::CaseInsensitive) == 0) {
+            resultat.etat = ResultatVerificationConflit::ConflitDetecte;
+            resultat.message = QString("La salle « %1 » est déjà occupée le %2 de %3 à %4 (durée : %5 min).")
+                                   .arg(salleNettoyee,
+                                        date.toString(kFormatDate),
+                                        heureExistante.toString("HH:mm"),
+                                        finExistante.time().toString("HH:mm"))
+                                   .arg(dureeMin);
+            return resultat;
         }
     }
-    return QString();
+    if (q.lastError().isValid()) {
+        resultat.etat = ResultatVerificationConflit::ErreurSql;
+        resultat.message = QStringLiteral("Impossible de lire les conflits de planning : %1")
+                               .arg(q.lastError().text());
+        qWarning() << "Erreur lecture conflits planning:" << q.lastError().text();
+    }
+    return resultat;
 }
 
-bool PlanningEvaluationsPage::ajouterSession(const SessionEval &s, int *nouvelId)
+bool PlanningEvaluationsPage::validerSession(const SessionEval &s, int exclureId, QString *messageErreur)
 {
+    if (messageErreur) messageErreur->clear();
+
+    if (!s.date.isValid()) {
+        if (messageErreur) *messageErreur = QStringLiteral("La date de la session est invalide.");
+        return false;
+    }
+    if (!s.heure.isValid()) {
+        if (messageErreur) *messageErreur = QStringLiteral("L'heure de la session est invalide.");
+        return false;
+    }
+    if (s.idProjet <= 0) {
+        if (messageErreur) *messageErreur = QStringLiteral("Veuillez sélectionner un projet.");
+        return false;
+    }
+    if (s.idJury <= 0) {
+        if (messageErreur) *messageErreur = QStringLiteral("Veuillez sélectionner un juré.");
+        return false;
+    }
+
+    const QString salle = s.salle.trimmed();
+    if (salle.isEmpty()) {
+        if (messageErreur) *messageErreur = QStringLiteral("Veuillez indiquer la salle.");
+        return false;
+    }
+    if (salle.size() > 100) {
+        if (messageErreur) *messageErreur = QStringLiteral("La salle ne peut pas dépasser 100 caractères.");
+        return false;
+    }
+    if (!kStatuts.contains(s.statut)) {
+        if (messageErreur) *messageErreur = QStringLiteral("Le statut de la session est invalide.");
+        return false;
+    }
+
+    const ResultatVerificationConflit verification =
+        verifierConflit(s.date, s.heure, s.idJury, salle, exclureId);
+    if (verification.etat == ResultatVerificationConflit::ErreurSql) {
+        if (messageErreur) *messageErreur = verification.message;
+        return false;
+    }
+    if (verification.etat == ResultatVerificationConflit::ConflitDetecte) {
+        if (messageErreur) *messageErreur = verification.message;
+        return false;
+    }
+    return true;
+}
+
+bool PlanningEvaluationsPage::ajouterSession(const SessionEval &s, int *nouvelId, QString *messageErreur)
+{
+    if (nouvelId) *nouvelId = -1;
+    if (messageErreur) messageErreur->clear();
+
+    QString validation;
+    if (!validerSession(s, -1, &validation)) {
+        if (messageErreur) *messageErreur = validation;
+        return false;
+    }
+
+    const bool oracle = QSqlDatabase::database().driverName() != QLatin1String("QSQLITE");
+    QVariant idOracle;
+    if (oracle) {
+        // NEXTVAL explicite avant l'INSERT : l'identifiant est connu sans dépendre
+        // de CURRVAL ni du trigger SESSION_BIR sur la même connexion.
+        QSqlQuery seq;
+        if (!seq.exec(QStringLiteral("SELECT SESSION_SEQ.NEXTVAL FROM DUAL")) || !seq.next()) {
+            const QString message = QStringLiteral("Impossible d'obtenir un identifiant de session Oracle : %1")
+                                        .arg(seq.lastError().text());
+            signalerErreurSql(QStringLiteral("Impossible d'obtenir SESSION_SEQ.NEXTVAL"), seq.lastError());
+            if (messageErreur) *messageErreur = message;
+            return false;
+        }
+        idOracle = seq.value(0);
+        if (idOracle.toInt() <= 0) {
+            const QString message = QStringLiteral("SESSION_SEQ.NEXTVAL a renvoyé un identifiant invalide.");
+            qWarning() << message << idOracle;
+            if (messageErreur) *messageErreur = message;
+            return false;
+        }
+    }
+
+    QSqlDatabase db = QSqlDatabase::database();
+    if (!db.transaction()) {
+        const QString message = QStringLiteral("Impossible de démarrer la transaction : %1")
+                                    .arg(db.lastError().text());
+        signalerErreurSql(QStringLiteral("Impossible de démarrer la transaction d'ajout de session"), db.lastError());
+        if (messageErreur) *messageErreur = message;
+        return false;
+    }
+
     QSqlQuery q;
-    q.prepare("INSERT INTO SESSION_EVALUATION (date_session, heure, id_projet, id_jury, salle, statut) "
-              "VALUES (?, ?, ?, ?, ?, ?)");
+    if (oracle) {
+        q.prepare("INSERT INTO SESSION_EVALUATION (id_session, date_session, heure, id_projet, id_jury, salle, statut) "
+                  "VALUES (?, ?, ?, ?, ?, ?, ?)");
+        q.addBindValue(idOracle);
+    } else {
+        q.prepare("INSERT INTO SESSION_EVALUATION (date_session, heure, id_projet, id_jury, salle, statut) "
+                  "VALUES (?, ?, ?, ?, ?, ?)");
+    }
     q.addBindValue(s.date.toString("yyyy-MM-dd"));
     q.addBindValue(s.heure.toString("HH:mm"));
     q.addBindValue(s.idProjet);
@@ -362,16 +518,66 @@ bool PlanningEvaluationsPage::ajouterSession(const SessionEval &s, int *nouvelId
     q.addBindValue(s.salle.trimmed());
     q.addBindValue(s.statut);
     if (!q.exec()) {
+        const QString message = QStringLiteral("Impossible d'ajouter la session : %1").arg(q.lastError().text());
         qWarning() << "Erreur ajout session:" << q.lastError().text();
+        if (!db.rollback())
+            qWarning() << "Erreur rollback ajout session:" << db.lastError().text();
+        if (messageErreur) *messageErreur = message;
         return false;
     }
-    QSqlQuery().exec("COMMIT");
-    if (nouvelId) *nouvelId = q.lastInsertId().toInt();
+
+    if (oracle) {
+        if (nouvelId) *nouvelId = idOracle.toInt();
+    } else if (nouvelId) {
+        const QVariant id = q.lastInsertId();
+        if (!id.isValid() || id.toInt() <= 0) {
+            const QString message = QStringLiteral(
+                "La session a été ajoutée, mais son identifiant n'a pas pu être récupéré. "
+                "Vérifiez le planning avant de réessayer pour éviter un doublon.");
+            qWarning() << "Erreur récupération identifiant session:" << id;
+            if (!db.rollback())
+                qWarning() << "Erreur rollback ajout session:" << db.lastError().text();
+            if (messageErreur) *messageErreur = message;
+            return false;
+        }
+        *nouvelId = id.toInt();
+    }
+
+    if (!db.commit()) {
+        const QString message = QStringLiteral("Impossible de valider l'ajout de la session : %1")
+                                    .arg(db.lastError().text());
+        qWarning() << "Erreur validation ajout session:" << db.lastError().text();
+        if (!db.rollback())
+            qWarning() << "Erreur rollback ajout session:" << db.lastError().text();
+        if (messageErreur) *messageErreur = message;
+        return false;
+    }
     return true;
 }
 
-bool PlanningEvaluationsPage::modifierSession(const SessionEval &s)
+bool PlanningEvaluationsPage::modifierSession(const SessionEval &s, QString *messageErreur)
 {
+    if (messageErreur) messageErreur->clear();
+
+    if (s.id <= 0) {
+        if (messageErreur) *messageErreur = QStringLiteral("Identifiant de session invalide.");
+        return false;
+    }
+    QString validation;
+    if (!validerSession(s, s.id, &validation)) {
+        if (messageErreur) *messageErreur = validation;
+        return false;
+    }
+
+    QSqlDatabase db = QSqlDatabase::database();
+    if (!db.transaction()) {
+        const QString message = QStringLiteral("Impossible de démarrer la transaction : %1")
+                                    .arg(db.lastError().text());
+        signalerErreurSql(QStringLiteral("Impossible de démarrer la transaction de modification de session"), db.lastError());
+        if (messageErreur) *messageErreur = message;
+        return false;
+    }
+
     QSqlQuery q;
     q.prepare("UPDATE SESSION_EVALUATION SET date_session = ?, heure = ?, id_projet = ?, id_jury = ?, salle = ?, statut = ? "
               "WHERE id_session = ?");
@@ -383,10 +589,23 @@ bool PlanningEvaluationsPage::modifierSession(const SessionEval &s)
     q.addBindValue(s.statut);
     q.addBindValue(s.id);
     if (!q.exec()) {
+        const QString message = QStringLiteral("Impossible de modifier la session : %1").arg(q.lastError().text());
         qWarning() << "Erreur modification session:" << q.lastError().text();
+        if (!db.rollback())
+            qWarning() << "Erreur rollback modification session:" << db.lastError().text();
+        if (messageErreur) *messageErreur = message;
         return false;
     }
-    QSqlQuery().exec("COMMIT");
+
+    if (!db.commit()) {
+        const QString message = QStringLiteral("Impossible de valider la modification de la session : %1")
+                                    .arg(db.lastError().text());
+        qWarning() << "Erreur validation modification session:" << db.lastError().text();
+        if (!db.rollback())
+            qWarning() << "Erreur rollback modification session:" << db.lastError().text();
+        if (messageErreur) *messageErreur = message;
+        return false;
+    }
     return true;
 }
 
@@ -395,15 +614,24 @@ bool PlanningEvaluationsPage::supprimerSession(int id)
     QSqlQuery q;
     q.prepare("DELETE FROM SESSION_EVALUATION WHERE id_session = ?");
     q.addBindValue(id);
-    if (!q.exec()) return false;
-    QSqlQuery().exec("COMMIT");
+    if (!q.exec()) {
+        qWarning() << "Erreur suppression session:" << q.lastError().text();
+        return false;
+    }
     return true;
 }
 
 bool PlanningEvaluationsPage::exporterCSV(const QString &chemin, const QVector<SessionEval> &sessions)
 {
+    if (chemin.trimmed().isEmpty()) {
+        qWarning() << "Export CSV du planning : chemin vide.";
+        return false;
+    }
     QFile f(chemin);
-    if (!f.open(QIODevice::WriteOnly | QIODevice::Text)) return false;
+    if (!f.open(QIODevice::WriteOnly | QIODevice::Text)) {
+        qWarning() << "Export CSV du planning : ouverture impossible :" << f.errorString();
+        return false;
+    }
     QTextStream out(&f);
 #if QT_VERSION < QT_VERSION_CHECK(6, 0, 0)
     out.setCodec("UTF-8");
@@ -416,11 +644,18 @@ bool PlanningEvaluationsPage::exporterCSV(const QString &chemin, const QVector<S
             << csvChamp(s.salle) << ';' << csvChamp(s.statut) << '\n';
     }
     out.flush();
-    return f.error() == QFile::NoError;
+    const bool ok = out.status() == QTextStream::Ok && f.error() == QFile::NoError;
+    if (!ok) qWarning() << "Export CSV du planning : écriture incomplète :" << f.errorString();
+    f.close();
+    return ok;
 }
 
 bool PlanningEvaluationsPage::exporterPDF(const QString &chemin, const QVector<SessionEval> &sessions, const QString &periode)
 {
+    if (chemin.trimmed().isEmpty()) {
+        qWarning() << "Export PDF du planning : chemin vide.";
+        return false;
+    }
     QString html =
         "<html><head><style>"
         "body { font-family: 'Segoe UI', Arial, sans-serif; color: #0F172A; }"
@@ -457,7 +692,11 @@ bool PlanningEvaluationsPage::exporterPDF(const QString &chemin, const QVector<S
     QTextDocument doc;
     doc.setHtml(html);
     doc.print(&printer);
-    return QFile::exists(chemin);
+    if (!QFile::exists(chemin) || QFileInfo(chemin).size() <= 0) {
+        qWarning() << "Export PDF du planning : le fichier n'a pas été créé ou est vide :" << chemin;
+        return false;
+    }
+    return true;
 }
 
 // ====================================================================
@@ -978,12 +1217,24 @@ void PlanningEvaluationsPage::rechargerFiltres()
     };
 
     QList<QPair<QString, QVariant>> projets, jurys, equipes, statuts;
-    QSqlQuery q("SELECT id_projet, titre FROM PROJET ORDER BY titre");
-    while (q.next()) projets.append({q.value(1).toString(), q.value(0).toInt()});
-    QSqlQuery qj("SELECT id_jury, nom, prenom FROM JURY ORDER BY nom, prenom");
-    while (qj.next()) jurys.append({qj.value(1).toString() + " " + qj.value(2).toString(), qj.value(0).toInt()});
-    QSqlQuery qe("SELECT DISTINCT nom_equipe FROM PROJET ORDER BY nom_equipe");
-    while (qe.next()) equipes.append({qe.value(0).toString(), qe.value(0).toString()});
+    QSqlQuery q;
+    if (!q.exec(QStringLiteral("SELECT id_projet, titre FROM PROJET ORDER BY titre"))) {
+        signalerErreurSql(QStringLiteral("Impossible de charger le filtre des projets du planning"), q.lastError());
+    } else {
+        while (q.next()) projets.append({q.value(1).toString(), q.value(0).toInt()});
+    }
+    QSqlQuery qj;
+    if (!qj.exec(QStringLiteral("SELECT id_jury, nom, prenom FROM JURY ORDER BY nom, prenom"))) {
+        signalerErreurSql(QStringLiteral("Impossible de charger le filtre des jurés du planning"), qj.lastError());
+    } else {
+        while (qj.next()) jurys.append({qj.value(1).toString() + " " + qj.value(2).toString(), qj.value(0).toInt()});
+    }
+    QSqlQuery qe;
+    if (!qe.exec(QStringLiteral("SELECT DISTINCT nom_equipe FROM PROJET ORDER BY nom_equipe"))) {
+        signalerErreurSql(QStringLiteral("Impossible de charger le filtre des équipes du planning"), qe.lastError());
+    } else {
+        while (qe.next()) equipes.append({qe.value(0).toString(), qe.value(0).toString()});
+    }
     for (const QString &s : kStatuts) statuts.append({s, s});
 
     recharger(m_cbProjet, "Tous les projets", projets);
@@ -1051,12 +1302,8 @@ void PlanningEvaluationsPage::chargerListe()
 {
     if (!m_table || m_chargement) return;
 
-    // Cohérence avec la base : les sessions dont le juré ou le projet n'existe plus sont retirées
-    {
-        QSqlQuery nettoyage;
-        nettoyage.exec("DELETE FROM SESSION_EVALUATION WHERE id_jury NOT IN (SELECT id_jury FROM JURY) "
-                       "OR id_projet NOT IN (SELECT id_projet FROM PROJET)");
-    }
+    // Le nettoyage des sessions orphelines est effectué lors de la suppression
+    // d'un juré (Jury::supprimer), jamais pendant le simple chargement de la page.
 
     mettreAJourCalendrier();
     const QVector<SessionEval> sessions = sessionsFiltrees();
@@ -1390,11 +1637,19 @@ void PlanningEvaluationsPage::dialogueSession(int idSession)
         }
     }
 
-    QSqlQuery qp("SELECT id_projet, titre FROM PROJET ORDER BY titre");
+    QSqlQuery qp;
     QList<QPair<int, QString>> projets;
+    if (!qp.exec(QStringLiteral("SELECT id_projet, titre FROM PROJET ORDER BY titre"))) {
+        signalerErreurSql(QStringLiteral("Impossible de charger les projets du dialogue de session"), qp.lastError());
+        return;
+    }
     while (qp.next()) projets.append({qp.value(0).toInt(), qp.value(1).toString()});
-    QSqlQuery qj("SELECT id_jury, nom, prenom FROM JURY ORDER BY nom, prenom");
+    QSqlQuery qj;
     QList<QPair<int, QString>> jurys;
+    if (!qj.exec(QStringLiteral("SELECT id_jury, nom, prenom FROM JURY ORDER BY nom, prenom"))) {
+        signalerErreurSql(QStringLiteral("Impossible de charger les jurés du dialogue de session"), qj.lastError());
+        return;
+    }
     while (qj.next()) jurys.append({qj.value(0).toInt(), qj.value(1).toString() + " " + qj.value(2).toString()});
     if (projets.isEmpty() || jurys.isEmpty()) {
         QMessageBox::warning(this, "Données manquantes",
@@ -1431,9 +1686,14 @@ void PlanningEvaluationsPage::dialogueSession(int idSession)
     edHeure->setDisplayFormat("HH:mm");
     QComboBox *cbSalle = new QComboBox();
     cbSalle->setEditable(true);
+    if (cbSalle->lineEdit()) cbSalle->lineEdit()->setMaxLength(100);
     QStringList salles = {"Salle 1", "Salle 2", "Salle 3", "Salle 4", "Salle 5"};
-    QSqlQuery qs("SELECT DISTINCT salle FROM SESSION_EVALUATION ORDER BY salle");
-    while (qs.next()) if (!salles.contains(qs.value(0).toString())) salles << qs.value(0).toString();
+    QSqlQuery qs;
+    if (!qs.exec(QStringLiteral("SELECT DISTINCT salle FROM SESSION_EVALUATION ORDER BY salle"))) {
+        signalerErreurSql(QStringLiteral("Impossible de charger la liste des salles"), qs.lastError());
+    } else {
+        while (qs.next()) if (!salles.contains(qs.value(0).toString())) salles << qs.value(0).toString();
+    }
     cbSalle->addItems(salles);
     QComboBox *cbStatut = new QComboBox();
     cbStatut->addItems(kStatuts);
@@ -1490,14 +1750,30 @@ void PlanningEvaluationsPage::dialogueSession(int idSession)
             QMessageBox::warning(&dlg, "Saisie invalide", "Veuillez indiquer la salle.");
             return;
         }
-        const QString conflit = verifierConflit(saisie.date, saisie.heure, saisie.idJury, saisie.salle, modification ? saisie.id : -1);
-        if (!conflit.isEmpty()) {
-            QMessageBox::warning(&dlg, "Conflit de planning", conflit);
+        if (saisie.salle.size() > 100) {
+            QMessageBox::warning(&dlg, "Saisie invalide", "La salle ne peut pas dépasser 100 caractères.");
             return;
         }
-        const bool ok = modification ? modifierSession(saisie) : ajouterSession(saisie, &saisie.id);
+        const ResultatVerificationConflit verification = verifierConflit(
+            saisie.date, saisie.heure, saisie.idJury, saisie.salle, modification ? saisie.id : -1);
+        if (verification.etat == ResultatVerificationConflit::ErreurSql) {
+            QMessageBox::critical(&dlg, "Erreur de vérification",
+                                  "Impossible de vérifier les conflits de planning.\n"
+                                  "L'enregistrement est annulé.\n\n" + verification.message);
+            return;
+        }
+        if (verification.etat == ResultatVerificationConflit::ConflitDetecte) {
+            QMessageBox::warning(&dlg, "Conflit de planning", verification.message);
+            return;
+        }
+        QString erreurEnregistrement;
+        const bool ok = modification ? modifierSession(saisie, &erreurEnregistrement)
+                                     : ajouterSession(saisie, &saisie.id, &erreurEnregistrement);
         if (!ok) {
-            QMessageBox::critical(&dlg, "Erreur", "L'enregistrement dans la base de données a échoué.");
+            QMessageBox::critical(&dlg, "Erreur",
+                                  "L'enregistrement dans la base de données a échoué :\n" +
+                                  (erreurEnregistrement.isEmpty() ? QStringLiteral("Erreur inconnue.")
+                                                                  : erreurEnregistrement));
             return;
         }
         dlg.accept();
@@ -1531,10 +1807,15 @@ void PlanningEvaluationsPage::detailSession(int idSession)
 
     QString note = "Pas encore évalué";
     QSqlQuery q;
-    q.prepare("SELECT note FROM EVALUATION WHERE id_jury = ? AND id_projet = ? ORDER BY date_evaluation DESC LIMIT 1");
+    q.prepare("SELECT note FROM EVALUATION WHERE id_jury = ? AND id_projet = ? ORDER BY date_evaluation DESC");
     q.addBindValue(s.idJury);
     q.addBindValue(s.idProjet);
-    if (q.exec() && q.next()) note = QString::number(q.value(0).toDouble(), 'f', 1) + " / " + QString::number(ParametresJury::charger().noteTotaleParProjet);
+    if (!q.exec()) {
+        signalerErreurSql(QStringLiteral("Impossible de lire la note de la session #%1").arg(idSession), q.lastError());
+    } else if (q.next()) {
+        note = QString::number(q.value(0).toDouble(), 'f', 1) + " / " +
+               QString::number(ParametresJury::charger().noteTotaleParProjet);
+    }
 
     QDialog dlg(this);
     dlg.setObjectName("dialogueDetailSession");

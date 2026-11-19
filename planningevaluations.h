@@ -39,6 +39,13 @@ struct SessionEval
     QString nomCompletJury() const { return nomJury + " " + prenomJury; }
 };
 
+struct ResultatVerificationConflit
+{
+    enum Etat { AucunConflit, ConflitDetecte, ErreurSql };
+    Etat etat = AucunConflit;
+    QString message;
+};
+
 /**
  * @brief Mini-calendrier mensuel (lundi en premier) : plage de dates en surbrillance,
  * points colorés sous les jours qui ont des sessions, clic sur un jour.
@@ -99,9 +106,12 @@ public:
     // ---- Accès aux données (statiques : utilisables et testables sans l'interface) ----
     static QVector<SessionEval> lireSessions();
     static SessionEval lireSession(int id);
-    static QString verifierConflit(const QDate &date, const QTime &heure, int idJury, const QString &salle, int exclureId);
-    static bool ajouterSession(const SessionEval &s, int *nouvelId = nullptr);
-    static bool modifierSession(const SessionEval &s);
+    static ResultatVerificationConflit verifierConflit(const QDate &date, const QTime &heure, int idJury,
+                                                       const QString &salle, int exclureId);
+    // Valide une session complète (date/heure, salle <= 100, statut, conflits de créneau).
+    static bool validerSession(const SessionEval &s, int exclureId, QString *messageErreur = nullptr);
+    static bool ajouterSession(const SessionEval &s, int *nouvelId = nullptr, QString *messageErreur = nullptr);
+    static bool modifierSession(const SessionEval &s, QString *messageErreur = nullptr);
     static bool supprimerSession(int id);
     static bool exporterCSV(const QString &chemin, const QVector<SessionEval> &sessions);
     static bool exporterPDF(const QString &chemin, const QVector<SessionEval> &sessions, const QString &periode);

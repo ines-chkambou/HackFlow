@@ -25,7 +25,7 @@ struct ParametresJury
     int noteTotaleParProjet = 20;   // barème total par projet
 
     static ParametresJury charger();
-    bool enregistrer() const;
+    bool enregistrer(QString *messageErreur = nullptr) const;
 };
 
 /**

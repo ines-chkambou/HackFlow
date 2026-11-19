@@ -1,5 +1,6 @@
 #include "parametresjury.h"
 #include "jury.h"
+#include "sqlutils.h"
 #include "uihelpers.h"
 
 #include <QActionGroup>
@@ -65,25 +66,34 @@ ParametresJury ParametresJury::charger()
     p.nombreJurys = qMax(1, Jury::compterTotal());   // valeur par défaut : effectif réel des jurés
 
     QSqlQuery q;
-    if (q.exec("SELECT cle, valeur FROM PARAMETRES_JURY")) {
-        while (q.next()) {
-            const QString cle = q.value(0).toString();
-            bool ok = false;
-            const int v = q.value(1).toString().toInt(&ok);
-            if (!ok) continue;
-            if (cle == "nombre_jurys")            p.nombreJurys = v;
-            else if (cle == "membres_par_session") p.membresParSession = v;
-            else if (cle == "duree_evaluation")    p.dureeEvaluationMin = v;
-            else if (cle == "note_totale")         p.noteTotaleParProjet = v;
-        }
+    if (!q.exec(QStringLiteral("SELECT cle, valeur FROM PARAMETRES_JURY"))) {
+        signalerErreurSql(QStringLiteral("Impossible de charger les paramètres du jury"), q.lastError());
+        return p;
+    }
+    while (q.next()) {
+        const QString cle = q.value(0).toString();
+        bool ok = false;
+        const int v = q.value(1).toString().toInt(&ok);
+        if (!ok) continue;
+        if (cle == "nombre_jurys")            p.nombreJurys = v;
+        else if (cle == "membres_par_session") p.membresParSession = v;
+        else if (cle == "duree_evaluation")    p.dureeEvaluationMin = v;
+        else if (cle == "note_totale")         p.noteTotaleParProjet = v;
     }
     return p;
 }
 
-bool ParametresJury::enregistrer() const
+bool ParametresJury::enregistrer(QString *messageErreur) const
 {
     QSqlDatabase db = QSqlDatabase::database();
-    const bool transaction = db.transaction();
+
+    if (!db.transaction()) {
+        const QString message = QStringLiteral("Impossible de démarrer la transaction : %1")
+                                    .arg(db.lastError().text());
+        qWarning() << "Erreur ouverture transaction paramètres jury:" << db.lastError().text();
+        if (messageErreur) *messageErreur = message;
+        return false;
+    }
 
     const QList<QPair<QString, int>> valeurs = {
         {"nombre_jurys", nombreJurys},
@@ -91,29 +101,47 @@ bool ParametresJury::enregistrer() const
         {"duree_evaluation", dureeEvaluationMin},
         {"note_totale", noteTotaleParProjet}};
 
-    bool ok = true;
     for (const auto &v : valeurs) {
         QSqlQuery del;
         del.prepare("DELETE FROM PARAMETRES_JURY WHERE cle = ?");
         del.addBindValue(v.first);
-        del.exec();
+        if (!del.exec()) {
+            const QString message = QStringLiteral("Impossible de mettre à jour le paramètre « %1 » : %2")
+                                        .arg(v.first, del.lastError().text());
+            qWarning() << "Erreur suppression paramètre" << v.first << del.lastError().text();
+            if (!db.rollback())
+                qWarning() << "Erreur rollback paramètres jury:" << db.lastError().text();
+            if (messageErreur) *messageErreur = message;
+            return false;
+        }
 
         QSqlQuery q;
         q.prepare("INSERT INTO PARAMETRES_JURY (cle, valeur) VALUES (?, ?)");
         q.addBindValue(v.first);
         q.addBindValue(QString::number(v.second));
         if (!q.exec()) {
+            const QString message = QStringLiteral("Impossible d'enregistrer le paramètre « %1 » : %2")
+                                        .arg(v.first, q.lastError().text());
             qWarning() << "Erreur enregistrement paramètre" << v.first << q.lastError().text();
-            ok = false;
-            break;
+            if (!db.rollback())
+                qWarning() << "Erreur rollback paramètres jury:" << db.lastError().text();
+            if (messageErreur) *messageErreur = message;
+            return false;
         }
     }
-    if (transaction) {
-        if (ok) ok = db.commit();
-        else db.rollback();
+
+    if (!db.commit()) {
+        const QString message = QStringLiteral("Impossible de valider la transaction : %1")
+                                    .arg(db.lastError().text());
+        qWarning() << "Erreur validation transaction paramètres jury:" << db.lastError().text();
+        if (!db.rollback())
+            qWarning() << "Erreur rollback après échec de validation:" << db.lastError().text();
+        if (messageErreur) *messageErreur = message;
+        return false;
     }
-    QSqlQuery().exec("COMMIT");
-    return ok;
+
+    if (messageErreur) messageErreur->clear();
+    return true;
 }
 
 // ====================================================================
@@ -762,8 +790,11 @@ void ParametresJuryPage::enregistrerParametres()
     p.dureeEvaluationMin = m_spinDuree->value();
     p.noteTotaleParProjet = m_spinNote->value();
 
-    if (!p.enregistrer()) {
-        QMessageBox::critical(this, "Erreur", "L'enregistrement des paramètres dans la base de données a échoué :\n" + QSqlDatabase::database().lastError().text());
+    QString erreurSql;
+    if (!p.enregistrer(&erreurSql)) {
+        QMessageBox::critical(this, "Erreur",
+                              "L'enregistrement des paramètres dans la base de données a échoué :\n" +
+                              (erreurSql.isEmpty() ? QStringLiteral("Erreur inconnue.") : erreurSql));
         return;
     }
     QMessageBox::information(this, "Paramètres enregistrés", "Les paramètres du jury ont été enregistrés avec succès.");
