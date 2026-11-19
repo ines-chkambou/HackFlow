@@ -6,6 +6,7 @@
 #include <QSqlQuery>
 #include <QDebug>
 #include <QDir>
+#include <QFileInfo>
 #include <QStandardPaths>
 
 /**
@@ -21,28 +22,32 @@ class Connection
 private:
     QSqlDatabase db;
     bool isOracle;
+    QString m_lastError;
 
     // Configuration Oracle lue depuis config.local.ini (fichier local ignore par Git)
     bool configurerOracle();
     bool initialiserSqlite();
     static QString cheminFichierConfig();
+    static QString cheminBaseSqlite();
+    void definirErreur(const QString &message);
 
 public:
     Connection();
     ~Connection();
 
-    bool createConnection(bool useOracle = false);
+    // Le moteur est choisi explicitement par HACKFLOW_DATABASE, puis par
+    // [database]/engine dans config.local.ini (sqlite ou oracle).
+    bool createConnection();
     void closeConnection();
 
     // Initialisation du schéma et des données de démonstration
     bool initializeDatabase();
     bool initializeOracleDatabase();
     void seedSampleData();
-    void seedSampleDataOracle();
     void seedSessions();
 
     bool isOpen() const { return db.isOpen(); }
-    QString getLastError() const { return db.lastError().text(); }
+    QString getLastError() const;
 };
 
 #endif // CONNECTION_H

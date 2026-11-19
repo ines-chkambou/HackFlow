@@ -2,6 +2,7 @@
 #include <QDate>
 #include <QDateTime>
 #include <QFile>
+#include <QFileInfo>
 #include <QStringList>
 #include <QCoreApplication>
 #include <QSettings>
@@ -37,14 +38,42 @@ QString Connection::cheminFichierConfig()
     return QString();
 }
 
+QString Connection::cheminBaseSqlite()
+{
+    // Chemin absolu, independant du repertoire courant : la base attendue est
+    // celle livree a cote de l'executable. Aucune creation implicite n'est permise.
+    return QDir(QCoreApplication::applicationDirPath())
+            .absoluteFilePath(QStringLiteral("smarthackathon.db"));
+}
+
+void Connection::definirErreur(const QString &message)
+{
+    m_lastError = message;
+    qCritical().noquote() << message;
+}
+
 bool Connection::initialiserSqlite()
 {
-    if (QSqlDatabase::contains(QStringLiteral("qt_sql_default_connection"))) {
-        db = QSqlDatabase::database(QStringLiteral("qt_sql_default_connection"));
-    } else {
-        db = QSqlDatabase::addDatabase(QStringLiteral("QSQLITE"));
-        db.setDatabaseName(QStringLiteral("smarthackathon.db"));
+    const QString chemin = cheminBaseSqlite();
+    const QFileInfo info(chemin);
+
+    // Protection : si le fichier attendu est absent, on refuse d'ouvrir.
+    // QSQLITE creerait sinon une base vide, qui serait ensuite remplie de donnees
+    // de demonstration. C'est exactement ce que cette phase doit empecher.
+    if (!info.exists() || !info.isFile()) {
+        definirErreur(QStringLiteral("Base SQLite introuvable : %1. "
+                                     "Aucune base vide ne sera creee automatiquement.")
+                          .arg(chemin));
+        return false;
     }
+    if (!info.isReadable()) {
+        definirErreur(QStringLiteral("Base SQLite inaccessible en lecture : %1.").arg(chemin));
+        return false;
+    }
+
+    db = QSqlDatabase::addDatabase(QStringLiteral("QSQLITE"));
+    db.setDatabaseName(chemin);
+    qDebug().noquote() << "Base SQLite utilisee :" << chemin;
     return true;
 }
 
@@ -52,7 +81,8 @@ bool Connection::configurerOracle()
 {
     const QString chemin = cheminFichierConfig();
     if (chemin.isEmpty()) {
-        qWarning() << "Aucun fichier config.local.ini trouve.";
+        definirErreur(QStringLiteral("Configuration Oracle introuvable (config.local.ini absent). "
+                                     "Le mode Oracle a ete demande : aucun repli vers SQLite."));
         return false;
     }
 
@@ -61,62 +91,111 @@ bool Connection::configurerOracle()
     const QString port = cfg.value(QStringLiteral("oracle/port")).toString().trimmed();
     const QString service = cfg.value(QStringLiteral("oracle/service")).toString().trimmed();
     const QString user = cfg.value(QStringLiteral("oracle/user")).toString().trimmed();
-    const QString password = cfg.value(QStringLiteral("oracle/password")).toString();
+    const QString envPassword = qEnvironmentVariable("HACKFLOW_ORACLE_PASSWORD");
+    const QString password = envPassword.isEmpty()
+            ? cfg.value(QStringLiteral("oracle/password")).toString()
+            : envPassword;
     QString odbcDriver = cfg.value(QStringLiteral("oracle/odbcDriver")).toString().trimmed();
+    const QString driver = cfg.value(QStringLiteral("oracle/driver")).toString().trimmed().toUpper();
 
     if (host.isEmpty() || port.isEmpty() || service.isEmpty()
             || user.isEmpty() || password.isEmpty()) {
-        qWarning() << "Configuration Oracle incomplete dans" << chemin << ": repli sur SQLite.";
+        definirErreur(QStringLiteral("Configuration Oracle incomplete dans %1 : "
+                                     "host, port, service, user et password sont requis. "
+                                     "Le mode Oracle a ete demande : aucun repli vers SQLite.")
+                          .arg(chemin));
         return false;
     }
 
-    if (odbcDriver.isEmpty())
-        odbcDriver = QStringLiteral("Oracle in instantclient_19_8");
+    if (!driver.isEmpty() && driver != QLatin1String("QODBC") && driver != QLatin1String("QOCI")) {
+        definirErreur(QStringLiteral("Pilote Oracle invalide : '%1'. Utilisez QODBC ou QOCI.").arg(driver));
+        return false;
+    }
 
-    if (QSqlDatabase::isDriverAvailable(QStringLiteral("QODBC"))) {
+    const bool qodbcDisponible = QSqlDatabase::isDriverAvailable(QStringLiteral("QODBC"));
+    const bool qociDisponible = QSqlDatabase::isDriverAvailable(QStringLiteral("QOCI"));
+
+    if (driver == QLatin1String("QODBC") || (driver.isEmpty() && qodbcDisponible)) {
+        if (!qodbcDisponible) {
+            definirErreur(QStringLiteral("Pilote QODBC demande mais indisponible. "
+                                         "Le mode Oracle a ete demande : aucun repli vers SQLite."));
+            return false;
+        }
+        if (odbcDriver.isEmpty()) {
+            definirErreur(QStringLiteral("Configuration Oracle incomplete : [oracle]/odbcDriver est requis "
+                                         "pour QODBC (exemple : Oracle in XE)."));
+            return false;
+        }
         db = QSqlDatabase::addDatabase(QStringLiteral("QODBC"));
         // La chaine DSN ne contient pas les identifiants : ils sont passes separement.
         db.setDatabaseName(QStringLiteral("DRIVER={%1};Dbq=%2:%3/%4;").arg(odbcDriver, host, port, service));
         db.setUserName(user);
         db.setPassword(password);
-    } else if (QSqlDatabase::isDriverAvailable(QStringLiteral("QOCI"))) {
+        return true;
+    }
+
+    if (driver == QLatin1String("QOCI") || (driver.isEmpty() && qociDisponible)) {
+        if (!qociDisponible) {
+            definirErreur(QStringLiteral("Pilote QOCI demande mais indisponible. "
+                                         "Le mode Oracle a ete demande : aucun repli vers SQLite."));
+            return false;
+        }
         db = QSqlDatabase::addDatabase(QStringLiteral("QOCI"));
         db.setHostName(host);
         db.setDatabaseName(service);
         db.setUserName(user);
         db.setPassword(password);
         db.setPort(port.toInt());
-    } else {
-        qWarning() << "Pilote Oracle indisponible, repli automatique sur SQLite.";
-        return false;
+        return true;
     }
-    return true;
+
+    definirErreur(QStringLiteral("Aucun pilote Oracle disponible (QODBC / QOCI). "
+                                 "Le mode Oracle a ete demande : aucun repli vers SQLite."));
+    return false;
 }
 
-bool Connection::createConnection(bool useOracle)
+bool Connection::createConnection()
 {
-    isOracle = useOracle;
+    QString moteur = qEnvironmentVariable("HACKFLOW_DATABASE").trimmed().toLower();
+    if (moteur.isEmpty()) {
+        const QString config = cheminFichierConfig();
+        if (config.isEmpty()) {
+            definirErreur(QStringLiteral("Aucun moteur de base configure. "
+                                         "Definissez HACKFLOW_DATABASE=sqlite|oracle ou "
+                                         "ajoutez [database] engine=sqlite|oracle dans config.local.ini. "
+                                         "Aucun moteur par defaut n'est applique."));
+            return false;
+        }
+        QSettings cfg(config, QSettings::IniFormat);
+        moteur = cfg.value(QStringLiteral("database/engine")).toString().trimmed().toLower();
+        if (moteur.isEmpty()) {
+            definirErreur(QStringLiteral("Moteur de base non configure dans %1 : "
+                                         "ajoutez [database] engine=sqlite ou engine=oracle. "
+                                         "Aucun moteur par defaut n'est applique.").arg(config));
+            return false;
+        }
+    }
+    if (moteur != QLatin1String("sqlite") && moteur != QLatin1String("oracle")) {
+        definirErreur(QStringLiteral("Moteur de base invalide : '%1'. Utilisez sqlite ou oracle.").arg(moteur));
+        return false;
+    }
+    isOracle = moteur == QLatin1String("oracle");
 
     if (isOracle) {
         // Configuration Oracle lue depuis config.local.ini (fichier local ignore par Git).
-        // Si le fichier est absent ou incomplet, repli automatique sur SQLite.
-        if (!configurerOracle()) {
-            qWarning() << "Configuration Oracle absente ou incomplete : repli automatique sur SQLite.";
-            isOracle = false;
-            initialiserSqlite();
-        }
+        // Aucun repli automatique : si Oracle est demande et indisponible, on echoue.
+        if (!configurerOracle())
+            return false;
     } else {
-        // Mode SQLite : 100% autonome, fonctionne instantanÃ©ment sur n'importe quel PC
-        if (QSqlDatabase::contains("qt_sql_default_connection")) {
-            db = QSqlDatabase::database("qt_sql_default_connection");
-        } else {
-            db = QSqlDatabase::addDatabase("QSQLITE");
-            QString dbPath = "smarthackathon.db";
-            db.setDatabaseName(dbPath);
-        }
+        // Mode SQLite : base locale existante uniquement (chemin absolu, sans creation).
+        if (!initialiserSqlite())
+            return false;
     }
 
     if (!db.open()) {
+        m_lastError = QStringLiteral("Echec de la connexion %1 : %2")
+                .arg(isOracle ? QStringLiteral("Oracle") : QStringLiteral("SQLite"),
+                     db.lastError().text());
         qCritical() << "Erreur de connexion Ã  la base de donnÃ©es:" << db.lastError().text();
         return false;
     }
@@ -124,7 +203,8 @@ bool Connection::createConnection(bool useOracle)
     qDebug() << "Connexion Ã©tablie avec succÃ¨s avec le pilote:" << db.driverName();
 
     // Ancienne base SQLite (sans les colonnes tÃ©lÃ©phone / rÃ´le / Ã©quipe) : on la sauvegarde puis on repart d'une base neuve
-    if (db.driverName() == "QSQLITE") {
+    // PHASE 2 : mecanisme de renommage en .ancien.bak neutralise (destructif).
+    if (false && db.driverName() == "QSQLITE") {
         bool ancienSchema = false;
         {
             QSqlQuery pragma("PRAGMA table_info(JURY)");
@@ -144,6 +224,13 @@ bool Connection::createConnection(bool useOracle)
             }
         }
     }
+    if (isOracle) {
+        // Mode Oracle : verification de schema uniquement, strictement non destructive.
+        // Aucun CREATE / ALTER / UPDATE / INSERT, aucun seed de demonstration.
+        return initializeOracleDatabase();
+    }
+
+    // Mode SQLite : schema local et donnees de demonstration.
     return initializeDatabase();
 }
 
@@ -152,6 +239,13 @@ void Connection::closeConnection()
     if (db.isOpen()) {
         db.close();
     }
+}
+
+QString Connection::getLastError() const
+{
+    if (!m_lastError.isEmpty())
+        return m_lastError;
+    return db.lastError().text();
 }
 
 bool Connection::initializeDatabase()
@@ -216,6 +310,8 @@ bool Connection::initializeDatabase()
         QStringList colonnes;
         QSqlQuery pragma("PRAGMA table_info(EVALUATION)");
         while (pragma.next()) colonnes << pragma.value(1).toString();
+        if (pragma.lastError().isValid())
+            qWarning() << "Erreur lecture colonnes EVALUATION:" << pragma.lastError().text();
         for (const QString &c : {QString("crit_qualite"), QString("crit_impact"), QString("crit_business"), QString("crit_equipe")}) {
             if (!colonnes.contains(c) && !query.exec(QString("ALTER TABLE EVALUATION ADD COLUMN %1 REAL").arg(c))) {
                 qWarning() << "Erreur ajout colonne EVALUATION." << c << ":" << query.lastError().text();
@@ -238,6 +334,8 @@ bool Connection::initializeDatabase()
         while (pragma.next()) {
             if (pragma.value(1).toString() == "description") aDescription = true;
         }
+        if (pragma.lastError().isValid())
+            qWarning() << "Erreur lecture colonnes PROJET:" << pragma.lastError().text();
         if (!aDescription && !query.exec("ALTER TABLE PROJET ADD COLUMN description TEXT DEFAULT ''")) {
             qWarning() << "Erreur ajout colonne PROJET.description:" << query.lastError().text();
         }
@@ -259,8 +357,9 @@ bool Connection::initializeDatabase()
     }
 
     // Remplissage avec des donnÃ©es de dÃ©monstration si la table est vide
-    query.exec("SELECT COUNT(*) FROM JURY");
-    if (query.next() && query.value(0).toInt() == 0) {
+    if (!query.exec("SELECT COUNT(*) FROM JURY")) {
+        qWarning() << "Erreur lecture nombre de jurés:" << query.lastError().text();
+    } else if (query.next() && query.value(0).toInt() == 0) {
         seedSampleData();
     }
 
@@ -276,19 +375,94 @@ bool Connection::initializeDatabase()
         u.prepare("UPDATE PROJET SET description = ? WHERE titre = ? AND (description IS NULL OR description = '')");
         u.addBindValue(d.second);
         u.addBindValue(d.first);
-        u.exec();
+        if (!u.exec()) {
+            qWarning() << "Erreur mise à jour description projet" << d.first << ":" << u.lastError().text();
+        }
     }
 
     // Sessions de dÃ©monstration (12), datÃ©es Ã  partir de la veille du premier lancement
-    query.exec("SELECT COUNT(*) FROM SESSION_EVALUATION");
-    if (query.next() && query.value(0).toInt() == 0) {
-        query.exec("SELECT COUNT(*) FROM JURY");
-        const bool aJures = query.next() && query.value(0).toInt() > 0;
-        query.exec("SELECT COUNT(*) FROM PROJET");
-        const bool aProjets = query.next() && query.value(0).toInt() > 0;
+    if (!query.exec("SELECT COUNT(*) FROM SESSION_EVALUATION")) {
+        qWarning() << "Erreur lecture nombre de sessions:" << query.lastError().text();
+    } else if (query.next() && query.value(0).toInt() == 0) {
+        bool aJures = false;
+        bool aProjets = false;
+        if (!query.exec("SELECT COUNT(*) FROM JURY")) {
+            qWarning() << "Erreur lecture nombre de jurés pour les sessions:" << query.lastError().text();
+        } else {
+            aJures = query.next() && query.value(0).toInt() > 0;
+        }
+        if (!query.exec("SELECT COUNT(*) FROM PROJET")) {
+            qWarning() << "Erreur lecture nombre de projets pour les sessions:" << query.lastError().text();
+        } else {
+            aProjets = query.next() && query.value(0).toInt() > 0;
+        }
         if (aJures && aProjets) seedSessions();
     }
 
+    // Verification finale : les cinq tables doivent exister. Si une creation a echoue,
+    // l'application ne doit pas demarrer sur un schema incomplet.
+    QSqlQuery verif(db);
+    if (!verif.exec(QStringLiteral("SELECT COUNT(*) FROM sqlite_master "
+                                   "WHERE type = 'table' AND name IN "
+                                   "('JURY','PROJET','EVALUATION','SESSION_EVALUATION','PARAMETRES_JURY')"))
+            || !verif.next() || verif.value(0).toInt() != 5) {
+        definirErreur(QStringLiteral("Schema SQLite incomplet apres initialisation."));
+        return false;
+    }
+
+    return true;
+}
+
+bool Connection::initializeOracleDatabase()
+{
+    // Verification strictement non destructive : aucune creation, aucune modification,
+    // aucune insertion. On s'assure uniquement que les tables attendues existent dans
+    // le schema de l'utilisateur connecte. Le schema Oracle est cree exclusivement par
+    // le script de migration dedie, jamais par l'application.
+    QSqlQuery qUser(db);
+    if (!qUser.exec(QStringLiteral("SELECT USER FROM DUAL")) || !qUser.next()) {
+        definirErreur(QStringLiteral("Connexion Oracle ouverte, mais SELECT USER FROM DUAL a echoue : %1")
+                      .arg(qUser.lastError().text()));
+        return false;
+    }
+    qDebug().noquote() << "Oracle connecte : utilisateur reel =" << qUser.value(0).toString();
+
+    const QStringList tables = {
+        QStringLiteral("JURY"),
+        QStringLiteral("PROJET"),
+        QStringLiteral("EVALUATION"),
+        QStringLiteral("SESSION_EVALUATION"),
+        QStringLiteral("PARAMETRES_JURY")
+    };
+
+    QStringList manquantes;
+    int presentes = 0;
+    for (const QString &table : tables) {
+        QSqlQuery q(db);
+        q.prepare(QStringLiteral("SELECT COUNT(*) FROM user_tables WHERE table_name = ?"));
+        q.addBindValue(table);
+        if (!q.exec() || !q.next()) {
+            definirErreur(QStringLiteral("Verification du schema Oracle impossible : %1")
+                          .arg(q.lastError().text()));
+            return false;
+        }
+        if (q.value(0).toInt() == 0)
+            manquantes << table;
+        else
+            ++presentes;
+    }
+
+    qDebug() << "Tables Oracle presentes :" << presentes << "/" << tables.size();
+
+    if (!manquantes.isEmpty()) {
+        definirErreur(QStringLiteral("Schema Oracle incomplet : table(s) absente(s) : %1. "
+                                     "Aucune creation automatique n'est effectuee ; "
+                                     "executez la migration Oracle dediee.")
+                          .arg(manquantes.join(QStringLiteral(", "))));
+        return false;
+    }
+
+    qDebug() << "Schema Oracle verifie : aucune ecriture effectuee.";
     return true;
 }
 
@@ -297,51 +471,65 @@ void Connection::seedSampleData()
     QSqlQuery q;
 
     // Insertion des projets
-    q.exec("INSERT OR IGNORE INTO PROJET (id_projet, titre, nom_equipe, statut) VALUES "
-           "(1, 'EcoTrack', 'GreenTeam', 'En cours'), "
-           "(2, 'HealthCare AI', 'MedTech', 'ValidÃ©'), "
-           "(3, 'SmartCity Mobility', 'TechVision', 'En attente'), "
-           "(4, 'Clean Energy Grid', 'EcoSolutions', 'En attente'), "
-           "(5, 'UrbanAI Surveillance', 'SmartCity', 'En cours');");
+    if (!q.exec("INSERT OR IGNORE INTO PROJET (id_projet, titre, nom_equipe, statut) VALUES "
+                "(1, 'EcoTrack', 'GreenTeam', 'En cours'), "
+                "(2, 'HealthCare AI', 'MedTech', 'ValidÃ©'), "
+                "(3, 'SmartCity Mobility', 'TechVision', 'En attente'), "
+                "(4, 'Clean Energy Grid', 'EcoSolutions', 'En attente'), "
+                "(5, 'UrbanAI Surveillance', 'SmartCity', 'En cours');")) {
+        qWarning() << "Erreur insertion projets de démonstration:" << q.lastError().text();
+    }
 
     // Insertion des 10 membres du jury (identiques Ã  la maquette HackFlow)
-    q.exec("INSERT INTO JURY (nom, prenom, email, telephone, role, equipe, disponibilite) VALUES "
-           "('Ben Ali', 'Ahmed', 'ahmed.benali@example.com', '+216 98 123 456', 'Expert Tech', 'Technologie', 'Disponible'), "
-           "('Trabelsi', 'Siwa', 'sara.trabelsi@example.com', '+216 92 234 567', 'Investisseur', 'Finance', 'Disponible'), "
-           "('Khaled', 'Omar', 'omar.khaled@example.com', '+216 93 345 678', 'Business', 'StratÃ©gie', 'En ligne'), "
-           "('Ayari', 'Meriem', 'meriem.ayari@example.com', '+216 95 567 890', 'Designer', 'UX/UI', 'Disponible'), "
-           "('Jabri', 'Yassine', 'yassine.jabri@example.com', '+216 97 123 456', 'DÃ©veloppeur', 'WebFactory', 'En attente'), "
-           "('Zitibi', 'Ims', 'imes.zitibi@example.com', '+216 91 234 567', 'Expert MÃ©tier', 'Innovation', 'Disponible'), "
-           "('Gharbi', 'Amine', 'amine.gharbi@example.com', '+216 93 456 789', 'Architecte', 'SystÃ¨me', 'Disponible'), "
-           "('Mansouri', 'Leila', 'leila.mansouri@example.com', '+216 94 567 890', 'Consultant', 'Marketing', 'En ligne'), "
-           "('Slimani', 'Rami', 'rami.slimani@example.com', '+216 95 678 901', 'Investisseur', 'Finances', 'En attente'), "
-           "('Boukhris', 'Karim', 'karim.boukhris@example.com', '+216 96 789 012', 'Expert Tech', 'Technologie', 'Disponible');");
+    if (!q.exec("INSERT INTO JURY (nom, prenom, email, telephone, role, equipe, disponibilite) VALUES "
+                "('Ben Ali', 'Ahmed', 'ahmed.benali@example.com', '+216 98 123 456', 'Expert Tech', 'Technologie', 'Disponible'), "
+                "('Trabelsi', 'Siwa', 'sara.trabelsi@example.com', '+216 92 234 567', 'Investisseur', 'Finance', 'Disponible'), "
+                "('Khaled', 'Omar', 'omar.khaled@example.com', '+216 93 345 678', 'Business', 'StratÃ©gie', 'En ligne'), "
+                "('Ayari', 'Meriem', 'meriem.ayari@example.com', '+216 95 567 890', 'Designer', 'UX/UI', 'Disponible'), "
+                "('Jabri', 'Yassine', 'yassine.jabri@example.com', '+216 97 123 456', 'DÃ©veloppeur', 'WebFactory', 'En attente'), "
+                "('Zitibi', 'Ims', 'imes.zitibi@example.com', '+216 91 234 567', 'Expert MÃ©tier', 'Innovation', 'Disponible'), "
+                "('Gharbi', 'Amine', 'amine.gharbi@example.com', '+216 93 456 789', 'Architecte', 'SystÃ¨me', 'Disponible'), "
+                "('Mansouri', 'Leila', 'leila.mansouri@example.com', '+216 94 567 890', 'Consultant', 'Marketing', 'En ligne'), "
+                "('Slimani', 'Rami', 'rami.slimani@example.com', '+216 95 678 901', 'Investisseur', 'Finances', 'En attente'), "
+                "('Boukhris', 'Karim', 'karim.boukhris@example.com', '+216 96 789 012', 'Expert Tech', 'Technologie', 'Disponible');")) {
+        qWarning() << "Erreur insertion jurés de démonstration:" << q.lastError().text();
+    }
 
     // Insertion des Ã©valuations avec critÃ¨res dÃ©taillÃ©s
     // Insertion des évaluations avec critères détaillés
     // Projet 1: EcoTrack (bon consensus : 17.5 et 16.5)
-    q.exec("INSERT INTO EVALUATION (id_jury, id_projet, note, critere_innovation, critere_technique, critere_presentation, critere_pitch, commentaire, date_evaluation) VALUES "
-           "(1, 1, 17.5, 18.0, 17.0, 17.5, 17.5, 'Excellente approche écologique avec intégration de capteurs intelligents.', '2026-03-15 10:30'), "
-           "(2, 1, 16.5, 16.0, 17.0, 16.5, 16.5, 'Architecture cloud solide, dashboard intuitif et réactif.', '2026-03-15 11:15');");
+    if (!q.exec("INSERT INTO EVALUATION (id_jury, id_projet, note, critere_innovation, critere_technique, critere_presentation, critere_pitch, commentaire, date_evaluation) VALUES "
+                "(1, 1, 17.5, 18.0, 17.0, 17.5, 17.5, 'Excellente approche écologique avec intégration de capteurs intelligents.', '2026-03-15 10:30'), "
+                "(2, 1, 16.5, 16.0, 17.0, 16.5, 16.5, 'Architecture cloud solide, dashboard intuitif et réactif.', '2026-03-15 11:15');")) {
+        qWarning() << "Erreur insertion évaluations projet 1:" << q.lastError().text();
+    }
 
     // Projet 2: HealthCare AI (notes très élevées : 19.0 et 18.5)
-    q.exec("INSERT INTO EVALUATION (id_jury, id_projet, note, critere_innovation, critere_technique, critere_presentation, critere_pitch, commentaire, date_evaluation) VALUES "
-           "(4, 2, 19.0, 19.5, 19.0, 18.5, 19.0, 'Modèle d analyse prédictive impressionnant pour le milieu hospitalier.', '2026-03-15 14:00'), "
-           "(7, 2, 18.5, 18.0, 19.0, 18.5, 18.5, 'Design UX médical parfait, respect de la confidentialité des données.', '2026-03-15 14:45');");
+    if (!q.exec("INSERT INTO EVALUATION (id_jury, id_projet, note, critere_innovation, critere_technique, critere_presentation, critere_pitch, commentaire, date_evaluation) VALUES "
+                "(4, 2, 19.0, 19.5, 19.0, 18.5, 19.0, 'Modèle d analyse prédictive impressionnant pour le milieu hospitalier.', '2026-03-15 14:00'), "
+                "(7, 2, 18.5, 18.0, 19.0, 18.5, 18.5, 'Design UX médical parfait, respect de la confidentialité des données.', '2026-03-15 14:45');")) {
+        qWarning() << "Erreur insertion évaluations projet 2:" << q.lastError().text();
+    }
 
     // Projet 3: SmartCity Mobility (notes modérées : 14.0 et 14.5)
-    q.exec("INSERT INTO EVALUATION (id_jury, id_projet, note, critere_innovation, critere_technique, critere_presentation, critere_pitch, commentaire, date_evaluation) VALUES "
-           "(5, 3, 14.5, 14.0, 15.0, 14.5, 14.5, 'Bonne idée IoT urbaine mais manque de tests sous forte charge.', '2026-03-15 15:30'), "
-           "(6, 3, 14.0, 14.0, 14.0, 14.0, 14.0, 'Application mobile fluide, API bien documentée.', '2026-03-15 16:10');");
+    if (!q.exec("INSERT INTO EVALUATION (id_jury, id_projet, note, critere_innovation, critere_technique, critere_presentation, critere_pitch, commentaire, date_evaluation) VALUES "
+                "(5, 3, 14.5, 14.0, 15.0, 14.5, 14.5, 'Bonne idée IoT urbaine mais manque de tests sous forte charge.', '2026-03-15 15:30'), "
+                "(6, 3, 14.0, 14.0, 14.0, 14.0, 14.0, 'Application mobile fluide, API bien documentée.', '2026-03-15 16:10');")) {
+        qWarning() << "Erreur insertion évaluations projet 3:" << q.lastError().text();
+    }
 
     // Projet 5: UrbanAI Surveillance (FORTE DIVERGENCE : Juré 1 a mis 18.5, Juré 3 a mis 11.0 -> Écart de 7.5 pts pour démontrer le métier innovant d'alerte!)
-    q.exec("INSERT INTO EVALUATION (id_jury, id_projet, note, critere_innovation, critere_technique, critere_presentation, critere_pitch, commentaire, date_evaluation) VALUES "
-           "(1, 5, 18.5, 19.0, 18.5, 18.0, 18.5, 'Algorithmes de détection vidéo de pointe avec haute précision.', '2026-03-15 16:45'), "
-           "(3, 5, 11.0, 12.0, 11.0, 10.0, 11.0, 'Risques majeurs de sécurité et failles RGPD non traitées.', '2026-03-15 17:15');");
+    if (!q.exec("INSERT INTO EVALUATION (id_jury, id_projet, note, critere_innovation, critere_technique, critere_presentation, critere_pitch, commentaire, date_evaluation) VALUES "
+                "(1, 5, 18.5, 19.0, 18.5, 18.0, 18.5, 'Algorithmes de détection vidéo de pointe avec haute précision.', '2026-03-15 16:45'), "
+                "(3, 5, 11.0, 12.0, 11.0, 10.0, 11.0, 'Risques majeurs de sécurité et failles RGPD non traitées.', '2026-03-15 17:15');")) {
+        qWarning() << "Erreur insertion évaluations projet 5:" << q.lastError().text();
+    }
 
     // Projet 4: Clean Energy Grid (évaluation par Juré 8)
-    q.exec("INSERT INTO EVALUATION (id_jury, id_projet, note, critere_innovation, critere_technique, critere_presentation, critere_pitch, commentaire, date_evaluation) VALUES "
-           "(8, 4, 16.0, 16.5, 15.5, 16.0, 16.0, 'Modèle économique très viable pour le secteur de l énergie verte.', '2026-03-15 17:40');");
+    if (!q.exec("INSERT INTO EVALUATION (id_jury, id_projet, note, critere_innovation, critere_technique, critere_presentation, critere_pitch, commentaire, date_evaluation) VALUES "
+                "(8, 4, 16.0, 16.5, 15.5, 16.0, 16.0, 'Modèle économique très viable pour le secteur de l énergie verte.', '2026-03-15 17:40');")) {
+        qWarning() << "Erreur insertion évaluations projet 4:" << q.lastError().text();
+    }
 
     qDebug() << "Données de test initialisées avec succès.";
 }
@@ -374,6 +562,8 @@ void Connection::seedSessions()
         q.addBindValue(s.jury);
         q.addBindValue(QString::fromUtf8(s.salle));
         q.addBindValue(QString::fromUtf8(s.statut));
-        q.exec();
+        if (!q.exec()) {
+            qWarning() << "Erreur insertion session de démonstration:" << q.lastError().text();
+        }
     }
 }

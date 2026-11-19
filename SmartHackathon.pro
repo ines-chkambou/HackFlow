@@ -34,6 +34,7 @@ HEADERS += \
     parametresjury.h \
     planningevaluations.h \
     evaluationprojets.h \
+    sqlutils.h \
     uihelpers.h
 
 # Strictly one single .ui file as required by project specifications
